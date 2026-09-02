@@ -425,11 +425,19 @@
     return score;
   }
 
+  // Chrome (and others) can momentarily return an empty array from
+  // getVoices() right after cancel() — caching the last good list keeps
+  // speak() from silently losing the chosen voice on transient empty reads.
+  var cachedVoices = [];
+
   function populateVoices(){
     if(!synthAvailable) return;
-    var voices = speechSynthesis.getVoices().slice().sort(function(a,b){
+    var raw = speechSynthesis.getVoices();
+    if(!raw.length) return;
+    var voices = raw.slice().sort(function(a,b){
       return voiceScore(b) - voiceScore(a) || a.name.localeCompare(b.name);
     });
+    cachedVoices = voices;
     var sel = document.getElementById("voiceSelect");
     var previous = sel.value;
     sel.innerHTML = "";
@@ -468,17 +476,29 @@
   function speak(text, onend){
     if(!synthAvailable){ setTimeout(onend, estimateReadMs(text)); return; }
     try{
-      speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(text);
-      var sel = document.getElementById("voiceSelect");
-      var voices = speechSynthesis.getVoices();
-      var chosen = voices.find(function(v){ return v.voiceURI===sel.value; });
-      if(chosen) u.voice = chosen;
-      u.rate = parseFloat(document.getElementById("rateRange").value) || 1;
-      var done = false;
-      u.onend = function(){ if(done) return; done = true; onend(); };
-      u.onerror = function(){ if(done) return; done = true; onend(); };
-      speechSynthesis.speak(u);
+      var fire = function(){
+        var u = new SpeechSynthesisUtterance(text);
+        var sel = document.getElementById("voiceSelect");
+        var voices = cachedVoices.length ? cachedVoices : speechSynthesis.getVoices();
+        var chosen = voices.find(function(v){ return v.voiceURI===sel.value; });
+        if(chosen) u.voice = chosen;
+        u.rate = parseFloat(document.getElementById("rateRange").value) || 1;
+        var done = false;
+        u.onend = function(){ if(done) return; done = true; onend(); };
+        u.onerror = function(){ if(done) return; done = true; onend(); };
+        speechSynthesis.speak(u);
+      };
+      // Only cancel (and give the engine a beat to settle) when something is
+      // actually mid-utterance — e.g. a manual Next/Prev. Calling cancel()
+      // unconditionally before every speak() is what was dropping the chosen
+      // voice on later steps: Chrome can silently fall back to its default
+      // voice for a speak() issued immediately after a cancel().
+      if(speechSynthesis.speaking || speechSynthesis.pending){
+        speechSynthesis.cancel();
+        setTimeout(fire, 30);
+      } else {
+        fire();
+      }
     }catch(e){ setTimeout(onend, estimateReadMs(text)); }
   }
 
@@ -656,8 +676,8 @@
     if(!state.playing){ state.playing = true; els.playBtn.innerHTML = PAUSE_ICON; els.playBtn.setAttribute("aria-label","Pause"); speakCurrent(); }
     else { state.playing = false; els.reflectCue.hidden = true; if(synthAvailable) speechSynthesis.cancel(); els.playBtn.innerHTML = PLAY_ICON; els.playBtn.setAttribute("aria-label","Play"); persistProgress("in_progress"); }
   });
-  els.prevBtn.addEventListener("click", function(){ if(synthAvailable) speechSynthesis.cancel(); goTo(state.currentIndex-1, state.playing); });
-  els.nextBtn.addEventListener("click", function(){ if(synthAvailable) speechSynthesis.cancel(); goTo(state.currentIndex+1, state.playing); });
+  els.prevBtn.addEventListener("click", function(){ goTo(state.currentIndex-1, state.playing); });
+  els.nextBtn.addEventListener("click", function(){ goTo(state.currentIndex+1, state.playing); });
   els.stopBtn.addEventListener("click", setAside);
   els.newRosaryBtn.addEventListener("click", function(){ els.intentInput.value=""; checkResume(); showOnly("intent"); });
 
