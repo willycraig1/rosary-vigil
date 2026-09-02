@@ -89,11 +89,14 @@
   .icon-btn-play{ width:58px; height:58px; background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
   .icon-btn-play:hover{ background:var(--accent-strong); }
   .icon-btn-play svg{ width:20px; height:20px; }
-  .transport-settings{ display:flex; align-items:center; gap:14px; margin-left:auto; font-size:.82rem; color:var(--ink-soft); }
-  .transport-settings label{ display:flex; align-items:center; gap:8px; }
-  .transport-settings select{ background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:6px 8px; max-width:150px; }
   .btn-stop{ margin-left:auto; }
-  @media (max-width:560px){ .transport-settings, .btn-stop{ margin-left:0; } }
+
+  .voice-row{ display:flex; gap:8px; align-items:center; margin-top:14px; }
+  .voice-row select{ flex:1; min-width:0; background:var(--ground); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 9px; font-size:.85rem; }
+  .btn-preview{ padding:8px 14px; font-size:.82rem; flex:none; }
+  .pace-row{ display:flex; align-items:center; gap:10px; margin-top:14px; font-size:.85rem; color:var(--ink-soft); }
+  .pace-row input{ flex:1; }
+  .voice-status{ margin-top:12px; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-faint); min-height:1em; }
 
   .done-card{ text-align:left; }
   .done-card h2{ margin-top:8px; font-size:1.7rem; }
@@ -175,12 +178,7 @@
         <button class="icon-btn" id="prevBtn" aria-label="Previous prayer">‹</button>
         <button class="icon-btn icon-btn-play" id="playBtn" aria-label="Play"></button>
         <button class="icon-btn" id="nextBtn" aria-label="Next prayer">›</button>
-        <div class="transport-settings">
-          <label>Pace <input type="range" id="rateRange" min="0.7" max="1.3" step="0.05" value="1"></label>
-          <select id="voiceSelect" aria-label="Voice"></select>
-        </div>
         <button class="btn btn-ghost btn-stop" id="stopBtn">Set aside</button>
-        <p class="voice-hint" id="voiceHint" hidden>Voices under “Recommended” sound the most natural. For a real step up, install an Enhanced or Premium voice in your system's accessibility settings, then reload this page.</p>
       </div>
     </section>
 
@@ -193,6 +191,17 @@
   </main>
 
   <aside class="sidebar">
+    <section class="panel">
+      <h3>Voice</h3>
+      <div class="voice-row">
+        <select id="voiceSelect" aria-label="Voice"></select>
+        <button class="btn btn-ghost btn-preview" id="previewVoiceBtn" type="button">Hear a sample</button>
+      </div>
+      <label class="pace-row">Pace <input type="range" id="rateRange" min="0.7" max="1.3" step="0.05" value="1"></label>
+      <p class="voice-status" id="voiceStatus" aria-live="polite"></p>
+      <p class="voice-hint" id="voiceHint" hidden>Voices under “Recommended” sound the most natural. For a real step up, install an Enhanced or Premium voice in your system's accessibility settings, then reload this page.</p>
+    </section>
+
     <section class="panel">
       <h3>Today</h3>
       <dl class="today-detail">
@@ -483,9 +492,19 @@
         var chosen = voices.find(function(v){ return v.voiceURI===sel.value; });
         if(chosen) u.voice = chosen;
         u.rate = parseFloat(document.getElementById("rateRange").value) || 1;
+        var statusEl = document.getElementById("voiceStatus");
+        if(statusEl){
+          statusEl.textContent = chosen ? ("Requested: " + chosen.name) : "Requested: browser default";
+        }
         var done = false;
+        u.onstart = function(){
+          if(statusEl) statusEl.textContent = chosen ? ("Speaking as: " + chosen.name) : "Speaking as: browser default";
+        };
         u.onend = function(){ if(done) return; done = true; onend(); };
-        u.onerror = function(){ if(done) return; done = true; onend(); };
+        u.onerror = function(e){
+          if(statusEl) statusEl.textContent = "Voice engine error: " + (e && e.error ? e.error : "unknown") + " — falling back to text pacing.";
+          if(done) return; done = true; onend();
+        };
         speechSynthesis.speak(u);
       };
       // Only cancel (and give the engine a beat to settle) when something is
@@ -507,7 +526,7 @@
   ["todayDate","todayMysteryPill","todayMysteryLabel","mysteryName","mysteryWhy",
    "intentCard","intentInput","resumeRow","resumeText","resumeBtn","discardResumeBtn","beginBtn",
    "prayerCard","prayerGroup","prayerProgress","prayerLabel","mysteryTitle","prayerText","reflectCue",
-   "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","stopBtn",
+   "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","voiceStatus","previewVoiceBtn","stopBtn",
    "doneCard","doneSummary","newRosaryBtn","logList","logEmpty"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
@@ -682,6 +701,12 @@
   els.newRosaryBtn.addEventListener("click", function(){ els.intentInput.value=""; checkResume(); showOnly("intent"); });
 
   els.voiceSelect.addEventListener("change", function(){ try{ localStorage.setItem("rosary_voice", els.voiceSelect.value); }catch(e){} });
+  els.previewVoiceBtn.addEventListener("click", function(){
+    // A single, isolated utterance — no cancel(), no queue, no multi-step
+    // sequencing — so this is the cleanest way to confirm the selected
+    // voice actually reaches the engine, independent of everything else.
+    speak("Hail Mary, full of grace, the Lord is with thee.", function(){});
+  });
 
   function statusLabel(e){
     if(e.status==="completed") return "Completed";
