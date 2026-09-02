@@ -1,0 +1,695 @@
+<title>Rosary Vigil</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ink:#1C1E2E; --ink-soft:#565973; --ink-faint:#8489A6;
+    --ground:#E9EBF2; --surface:#FFFFFF; --surface-2:#DEE1EC; --line:#C6CADC;
+    --accent:#B5722A; --accent-strong:#8F5A20; --accent-ink:#FFF8EE;
+    --myst-joyful:#B57A4C; --myst-sorrowful:#8B2F3B; --myst-glorious:#A6821A; --myst-luminous:#35538F;
+    --shadow: 0 1px 2px rgba(28,30,46,.04), 0 8px 24px rgba(28,30,46,.06);
+    --font-display:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    --font-body:'Karla', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#ECE9F1; --ink-soft:#AEA9C4; --ink-faint:#726D93;
+      --ground:#100E1E; --surface:#1A1830; --surface-2:#211E3B; --line:#332F55;
+      --accent:#E4A857; --accent-strong:#F0BC78; --accent-ink:#211405;
+      --myst-joyful:#D9A06B; --myst-sorrowful:#C2596A; --myst-glorious:#D4B94A; --myst-luminous:#7C97CE;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#ECE9F1; --ink-soft:#AEA9C4; --ink-faint:#726D93;
+    --ground:#100E1E; --surface:#1A1830; --surface-2:#211E3B; --line:#332F55;
+    --accent:#E4A857; --accent-strong:#F0BC78; --accent-ink:#211405;
+    --myst-joyful:#D9A06B; --myst-sorrowful:#C2596A; --myst-glorious:#D4B94A; --myst-luminous:#7C97CE;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--ground); color:var(--ink); font-family:var(--font-body); }
+  h1,h2,h3{ font-family:var(--font-display); font-weight:600; margin:0; text-wrap:balance; }
+  p{ margin:0; }
+  button{ font-family:inherit; }
+  input, select{ font-family:inherit; }
+
+  .page{ max-width:1140px; margin:0 auto; padding:44px 24px 90px; display:grid; grid-template-columns:1.55fr 1fr; gap:36px 44px; align-items:start; }
+  @media (max-width:900px){ .page{ grid-template-columns:1fr; padding:32px 18px 64px; } }
+
+  .masthead{ grid-column:1/-1; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:26px; margin-bottom:4px; }
+  .eyebrow{ font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.12em; font-size:.7rem; color:var(--ink-soft); }
+  .title{ font-size:clamp(2.1rem,4.2vw,2.9rem); margin-top:.2em; }
+  .today{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .today-date{ font-family:var(--font-mono); font-size:.78rem; color:var(--ink-soft); letter-spacing:.02em; }
+  .today-mystery{ display:inline-flex; align-items:center; gap:8px; padding:6px 15px; border-radius:999px; font-weight:600; font-size:.85rem;
+    background:color-mix(in srgb, var(--myst-c) 16%, var(--surface)); color:var(--myst-c);
+    border:1px solid color-mix(in srgb, var(--myst-c) 42%, var(--surface)); }
+  .today-mystery .dot{ width:7px; height:7px; border-radius:50%; background:var(--myst-c); display:inline-block; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:38px; box-shadow:var(--shadow); }
+
+  .intent-card h2{ font-size:1.5rem; }
+  .intent-card .hint{ color:var(--ink-soft); font-size:.92rem; margin-top:10px; line-height:1.5; max-width:46ch; }
+  .intent-card input{ width:100%; margin-top:22px; padding:13px 16px; border-radius:10px; border:1px solid var(--line); background:var(--ground); color:var(--ink); font-size:1rem; }
+  .intent-card input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .btn{ font-weight:600; padding:13px 24px; border-radius:999px; border:1px solid transparent; cursor:pointer; font-size:.95rem; transition:background .15s ease, color .15s ease, transform .08s ease; }
+  .btn:active{ transform:scale(.98); }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-primary:hover{ background:var(--accent-strong); }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink-soft); }
+  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-faint); }
+  .btn-begin{ margin-top:26px; width:100%; }
+  .resume-row{ margin-top:24px; padding:18px; border-radius:12px; background:var(--surface-2); }
+  .resume-row p{ font-size:.9rem; color:var(--ink-soft); line-height:1.5; }
+  .resume-actions{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+
+  .prayer-card{ display:flex; flex-direction:column; gap:22px; }
+  .prayer-meta{ display:flex; justify-content:space-between; align-items:baseline; font-family:var(--font-mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); }
+  .prayer-label{ font-size:clamp(1.5rem,3vw,1.9rem); transition:opacity .18s ease; }
+  .mystery-title{ font-family:var(--font-display); font-style:italic; font-size:1.2rem; color:var(--accent); margin-top:-10px; }
+  .prayer-text{ font-family:var(--font-display); font-size:clamp(1.25rem,2.4vw,1.55rem); line-height:1.55; color:var(--ink); max-width:60ch; transition:opacity .18s ease; }
+
+  .beads-wrap{ display:flex; flex-direction:column; align-items:center; gap:8px; padding-top:6px; }
+  #beadSvg{ width:100%; max-width:280px; display:block; }
+  .beads-count{ font-family:var(--font-mono); font-size:.75rem; color:var(--ink-faint); letter-spacing:.04em; }
+  circle.bead{ transition:fill .25s ease, opacity .25s ease, stroke .25s ease; }
+  circle.bead-upcoming{ fill:var(--surface-2); stroke:var(--line); stroke-width:1.2; }
+  circle.bead-done{ fill:var(--accent); opacity:.5; stroke:none; }
+  circle.bead-current{ fill:var(--accent); stroke:none; animation:beadPulse 1.8s ease-in-out infinite; }
+  @keyframes beadPulse{ 0%,100%{ filter:drop-shadow(0 0 3px var(--accent)); } 50%{ filter:drop-shadow(0 0 8px var(--accent)); } }
+  @media (prefers-reduced-motion: reduce){ circle.bead-current{ animation:none; filter:drop-shadow(0 0 6px var(--accent)); } }
+
+  .transport{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:22px; }
+  .icon-btn{ width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.3rem; }
+  .icon-btn:hover{ border-color:var(--ink-faint); }
+  .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .icon-btn-play{ width:58px; height:58px; background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .icon-btn-play:hover{ background:var(--accent-strong); }
+  .icon-btn-play svg{ width:20px; height:20px; }
+  .transport-settings{ display:flex; align-items:center; gap:14px; margin-left:auto; font-size:.82rem; color:var(--ink-soft); }
+  .transport-settings label{ display:flex; align-items:center; gap:8px; }
+  .transport-settings select{ background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:6px 8px; max-width:150px; }
+  .btn-stop{ margin-left:auto; }
+  @media (max-width:560px){ .transport-settings, .btn-stop{ margin-left:0; } }
+
+  .done-card{ text-align:left; }
+  .done-card h2{ margin-top:8px; font-size:1.7rem; }
+  .done-card p#doneSummary{ color:var(--ink-soft); margin-top:12px; line-height:1.6; max-width:50ch; }
+  .done-card .btn{ margin-top:24px; }
+
+  .sidebar{ display:flex; flex-direction:column; gap:22px; }
+  .panel{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:26px 26px 24px; }
+  .panel h3{ font-size:1.05rem; }
+  .panel .hint{ color:var(--ink-soft); font-size:.85rem; margin-top:8px; line-height:1.5; }
+  .today-detail{ margin-top:16px; display:flex; flex-direction:column; gap:12px; }
+  .today-detail dt{ font-family:var(--font-mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); }
+  .today-detail dd{ margin:3px 0 0; font-size:.95rem; }
+
+  .log-list{ list-style:none; margin:16px 0 0; padding:0; max-height:340px; overflow-y:auto; display:flex; flex-direction:column; }
+  .log-item{ display:flex; gap:11px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .log-item:last-child{ border-bottom:none; }
+  .log-dot{ width:9px; height:9px; border-radius:50%; margin-top:6px; flex:none; }
+  .log-body{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .log-date{ font-family:var(--font-mono); font-size:.72rem; color:var(--ink-faint); }
+  .log-intent{ font-size:.88rem; color:var(--ink); overflow-wrap:break-word; }
+  .log-status{ align-self:flex-start; margin-top:2px; font-family:var(--font-mono); font-size:.68rem; letter-spacing:.03em; color:var(--ink-soft); }
+  .log-status-completed{ color:var(--accent); }
+  .empty-note{ color:var(--ink-faint); font-size:.85rem; margin-top:14px; }
+
+  .reflect-cue{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; color:var(--ink-faint); text-transform:uppercase; }
+  .reflect-cue::after{ content:"···"; display:inline-block; margin-left:6px; animation:reflectPulse 1.4s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ .reflect-cue::after{ animation:none; } }
+  @keyframes reflectPulse{ 0%,100%{ opacity:.35; } 50%{ opacity:1; } }
+
+  .voice-hint{ font-size:.76rem; color:var(--ink-faint); line-height:1.5; margin-top:2px; flex-basis:100%; }
+
+  [hidden]{ display:none !important; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">A paced companion for the Rosary</p>
+      <h1 class="title">Rosary Vigil</h1>
+    </div>
+    <div class="today">
+      <span class="today-date" id="todayDate"></span>
+      <span class="today-mystery" id="todayMysteryPill"><span class="dot"></span><span id="todayMysteryLabel"></span></span>
+    </div>
+  </header>
+
+  <main id="stage">
+    <section class="card intent-card" id="intentCard">
+      <h2>Set an intention</h2>
+      <p class="hint">Offered for someone, something, or simply held open — this is optional, and you can begin without one.</p>
+      <input id="intentInput" type="text" placeholder="e.g. for my mother's health" maxlength="140" />
+      <div class="resume-row" id="resumeRow" hidden>
+        <p id="resumeText"></p>
+        <div class="resume-actions">
+          <button class="btn btn-ghost" id="discardResumeBtn">Start fresh instead</button>
+          <button class="btn btn-primary" id="resumeBtn">Continue where you left off</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-begin" id="beginBtn">Begin the Rosary</button>
+    </section>
+
+    <section class="card prayer-card" id="prayerCard" hidden>
+      <div class="prayer-meta">
+        <span id="prayerGroup"></span>
+        <span id="prayerProgress"></span>
+      </div>
+      <h2 class="prayer-label" id="prayerLabel"></h2>
+      <p class="mystery-title" id="mysteryTitle" hidden></p>
+      <p class="prayer-text" id="prayerText"></p>
+      <p class="reflect-cue" id="reflectCue" hidden>Pausing to let it land</p>
+
+      <div class="beads-wrap">
+        <svg id="beadSvg" viewBox="0 0 300 250" aria-hidden="true"></svg>
+        <p class="beads-count" id="beadsCount"></p>
+      </div>
+
+      <div class="transport">
+        <button class="icon-btn" id="prevBtn" aria-label="Previous prayer">‹</button>
+        <button class="icon-btn icon-btn-play" id="playBtn" aria-label="Play"></button>
+        <button class="icon-btn" id="nextBtn" aria-label="Next prayer">›</button>
+        <div class="transport-settings">
+          <label>Pace <input type="range" id="rateRange" min="0.7" max="1.3" step="0.05" value="1"></label>
+          <select id="voiceSelect" aria-label="Voice"></select>
+        </div>
+        <button class="btn btn-ghost btn-stop" id="stopBtn">Set aside</button>
+        <p class="voice-hint" id="voiceHint" hidden>Voices under “Recommended” sound the most natural. For a real step up, install an Enhanced or Premium voice in your system's accessibility settings, then reload this page.</p>
+      </div>
+    </section>
+
+    <section class="card done-card" id="doneCard" hidden>
+      <p class="eyebrow">Amen.</p>
+      <h2>The Rosary is complete</h2>
+      <p id="doneSummary"></p>
+      <button class="btn btn-primary" id="newRosaryBtn">Begin again</button>
+    </section>
+  </main>
+
+  <aside class="sidebar">
+    <section class="panel">
+      <h3>Today</h3>
+      <dl class="today-detail">
+        <div><dt>Mystery</dt><dd id="mysteryName"></dd></div>
+        <div><dt>Because</dt><dd id="mysteryWhy"></dd></div>
+      </dl>
+    </section>
+
+    <section class="panel">
+      <h3>Log</h3>
+      <p class="hint">A record of what was actually prayed, intentions included.</p>
+      <ul class="log-list" id="logList"></ul>
+      <p class="empty-note" id="logEmpty">Nothing logged yet — it will fill in as you pray.</p>
+    </section>
+  </aside>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Prayer texts (traditional) ----------
+  var SIGN_OF_CROSS = "In the name of the Father, and of the Son, and of the Holy Spirit. Amen.";
+  var CREED = "I believe in God, the Father almighty, Creator of heaven and earth, and in Jesus Christ, His only Son, our Lord, who was conceived by the Holy Spirit, born of the Virgin Mary, suffered under Pontius Pilate, was crucified, died, and was buried; He descended into hell; on the third day He rose again from the dead; He ascended into heaven, and is seated at the right hand of God the Father almighty; from there He will come to judge the living and the dead. I believe in the Holy Spirit, the holy catholic Church, the communion of saints, the forgiveness of sins, the resurrection of the body, and life everlasting. Amen.";
+  var OUR_FATHER = "Our Father, who art in heaven, hallowed be Thy name; Thy kingdom come; Thy will be done on earth as it is in heaven. Give us this day our daily bread; and forgive us our trespasses, as we forgive those who trespass against us; and lead us not into temptation, but deliver us from evil. Amen.";
+  var HAIL_MARY = "Hail Mary, full of grace, the Lord is with thee. Blessed art thou among women, and blessed is the fruit of thy womb, Jesus. Holy Mary, Mother of God, pray for us sinners, now and at the hour of our death. Amen.";
+  var GLORY_BE = "Glory be to the Father, and to the Son, and to the Holy Spirit. As it was in the beginning, is now, and ever shall be, world without end. Amen.";
+  var FATIMA = "O my Jesus, forgive us our sins, save us from the fires of hell, lead all souls to Heaven, especially those who have most need of Thy mercy.";
+  var HAIL_HOLY_QUEEN = "Hail, holy Queen, Mother of mercy, our life, our sweetness, and our hope. To thee do we cry, poor banished children of Eve. To thee do we send up our sighs, mourning and weeping in this valley of tears. Turn then, most gracious advocate, thine eyes of mercy toward us, and after this our exile show unto us the blessed fruit of thy womb, Jesus. O clement, O loving, O sweet Virgin Mary.";
+  var CLOSING_PRAYER = "Let us pray. O God, whose only-begotten Son, by His life, death, and resurrection, has purchased for us the rewards of eternal life; grant, we beseech Thee, that meditating upon these mysteries of the most holy Rosary of the Blessed Virgin Mary, we may imitate what they contain and obtain what they promise, through the same Christ our Lord. Amen.";
+
+  var ORDINALS = ["First","Second","Third","Fourth","Fifth"];
+
+  // ---------- Mystery sets ----------
+  var MYSTERY_SETS = {
+    joyful: {
+      key:"joyful", name:"Joyful", why:"Prayed on Mondays and Saturdays.",
+      mysteries:[
+        {name:"The Annunciation", meditation:"The angel Gabriel greets a young woman in an ordinary room, and eternity turns on her answer. Consider the courage of saying yes to what you cannot yet understand."},
+        {name:"The Visitation", meditation:"Mary travels to help her kinswoman Elizabeth, carrying her own news inside her. Consider how joy, once received, moves outward toward others."},
+        {name:"The Nativity", meditation:"In a stable too small for the occasion, the child is born among animals and straw. Consider how little grandeur has to do with what matters most."},
+        {name:"The Presentation in the Temple", meditation:"Mary and Joseph bring the child to the Temple, keeping the law like anyone else. Consider the discipline of showing up for small, faithful obligations."},
+        {name:"The Finding of Jesus in the Temple", meditation:"After three days of searching, his parents find him teaching among the elders. Consider what it costs to lose track of what matters, and the relief of finding it again."}
+      ]
+    },
+    sorrowful: {
+      key:"sorrowful", name:"Sorrowful", why:"Prayed on Tuesdays and Fridays.",
+      mysteries:[
+        {name:"The Agony in the Garden", meditation:"Alone at night, he asks that the cup pass from him, and then accepts it anyway. Consider the difference between resignation and consent."},
+        {name:"The Scourging at the Pillar", meditation:"His body is given over to violence he did not provoke. Consider what it means to suffer for something larger than the suffering itself."},
+        {name:"The Crowning with Thorns", meditation:"Mockery is dressed up as ceremony, a joke made of a king. Consider how dignity survives ridicule."},
+        {name:"The Carrying of the Cross", meditation:"He carries the weight of his own execution through a crowd. Consider the burdens you carry that others can only watch you carry."},
+        {name:"The Crucifixion", meditation:"Between two criminals, at the furthest point from comfort, it is finished. Consider what remains true after everything visible is taken away."}
+      ]
+    },
+    glorious: {
+      key:"glorious", name:"Glorious", why:"Prayed on Wednesdays and Sundays.",
+      mysteries:[
+        {name:"The Resurrection", meditation:"The stone is found rolled away, and grief has nowhere left to stand. Consider what changes when death is no longer the end of the story."},
+        {name:"The Ascension", meditation:"He is taken up, and the work is handed to those left watching the sky. Consider what it means to carry on work you did not start."},
+        {name:"The Descent of the Holy Spirit", meditation:"Tongues of fire settle on a frightened, waiting room, and the fear breaks open into speech. Consider what arrives when you stop waiting quietly."},
+        {name:"The Assumption of Mary", meditation:"Mary is taken body and soul, nothing left behind to decay. Consider the promise that the ordinary body is not the last word."},
+        {name:"The Coronation of Mary", meditation:"She is crowned not for what she achieved alone, but for what she said yes to at the start. Consider how a single consent can echo the whole way through."}
+      ]
+    },
+    luminous: {
+      key:"luminous", name:"Luminous", why:"Prayed on Thursdays.",
+      mysteries:[
+        {name:"The Baptism of Jesus in the Jordan", meditation:"A voice from heaven names him beloved before he has done anything the crowd would call remarkable. Consider being loved prior to your accomplishments."},
+        {name:"The Wedding at Cana", meditation:"Water becomes wine because his mother simply says, they have no wine, and trusts him with the rest. Consider what it means to ask without specifying how."},
+        {name:"The Proclamation of the Kingdom", meditation:"He announces that the kingdom is at hand, then asks people to change how they see, not just what they do. Consider what in you still needs turning around."},
+        {name:"The Transfiguration", meditation:"On the mountain his face changes before their eyes, and for a moment they see what was always true. Consider what in you is truer than it usually looks."},
+        {name:"The Institution of the Eucharist", meditation:"At a table before his arrest, he gives them bread and tells them it is himself. Consider what it means to be given away in advance."}
+      ]
+    }
+  };
+  var DAY_TO_SET = ["glorious","joyful","sorrowful","glorious","luminous","sorrowful","joyful"];
+
+  function getTodaysMysterySet(date){ return MYSTERY_SETS[DAY_TO_SET[date.getDay()]]; }
+
+  // ---------- Build the step sequence ----------
+  function buildSteps(set){
+    var steps = [];
+    function push(kind, groupKind, label, text, bead, extra){
+      var s = { kind:kind, groupKind:groupKind, label:label, text:text, bead: bead||false };
+      if(extra) for(var k in extra) s[k]=extra[k];
+      steps.push(s);
+    }
+    push("prayer","opening","Sign of the Cross", SIGN_OF_CROSS, false);
+    push("prayer","opening","Apostles’ Creed", CREED, false);
+    push("prayer","opening","Our Father", OUR_FATHER, "large");
+    for(var i=0;i<3;i++) push("prayer","opening","Hail Mary "+(i+1)+" of 3", HAIL_MARY, "small");
+    push("prayer","opening","Glory Be", GLORY_BE, false);
+
+    set.mysteries.forEach(function(m, idx){
+      push("announce","decade", ORDINALS[idx]+" "+set.name+" Mystery", m.meditation, false, { title:m.name, decadeIndex:idx });
+      push("prayer","decade","Our Father", OUR_FATHER, "large", { decadeIndex:idx });
+      for(var j=0;j<10;j++) push("prayer","decade","Hail Mary "+(j+1)+" of 10", HAIL_MARY, "small", { decadeIndex:idx });
+      push("prayer","decade","Glory Be", GLORY_BE, false, { decadeIndex:idx });
+      push("prayer","decade","O My Jesus", FATIMA, false, { decadeIndex:idx });
+    });
+
+    push("prayer","closing","Hail, Holy Queen", HAIL_HOLY_QUEEN, false);
+    push("prayer","closing","Closing Prayer", CLOSING_PRAYER, false);
+    push("prayer","closing","Sign of the Cross", SIGN_OF_CROSS, false);
+
+    var beadCounter = 0, cum = 0;
+    steps.forEach(function(s){
+      if(s.bead){ s.beadSeq = beadCounter++; cum = s.beadSeq + 1; }
+      s.beadsSoFar = cum;
+    });
+    return steps;
+  }
+
+  // ---------- Bead geometry (59 beads: 4 on the tail, 55 around the loop) ----------
+  function buildBeadPositions(){
+    var positions = [];
+    var cx=150, cy=118, spacing=15;
+    var tailTopY = cy + 96;
+    for(var i=0;i<4;i++){
+      var y = tailTopY + (3-i)*spacing + 14;
+      positions.push({ x:cx, y:y, r: i===0 ? 6.5 : 5 });
+    }
+    var rx=112, ry=94, gapDeg=22, startDeg=90+gapDeg/2, sweepDeg=360-gapDeg;
+    for(var k=0;k<55;k++){
+      var deg = startDeg + (k/54)*sweepDeg;
+      var rad = deg*Math.PI/180;
+      var x = cx + rx*Math.cos(rad);
+      var y2 = cy + ry*Math.sin(rad);
+      var isLarge = (k % 11) === 0;
+      positions.push({ x:x, y:y2, r: isLarge ? 6.5 : 4.6 });
+    }
+    return positions;
+  }
+  var beadPositions = buildBeadPositions();
+
+  function renderBeadTrack(){
+    var svg = document.getElementById("beadSvg");
+    svg.innerHTML = "";
+    var ns = "http://www.w3.org/2000/svg";
+    var pts = beadPositions.map(function(p){ return p.x.toFixed(1)+","+p.y.toFixed(1); }).join(" ");
+    var poly = document.createElementNS(ns,"polyline");
+    poly.setAttribute("points", pts);
+    poly.setAttribute("fill","none");
+    poly.setAttribute("stroke","var(--line)");
+    poly.setAttribute("stroke-width","1.5");
+    svg.appendChild(poly);
+    beadPositions.forEach(function(p, idx){
+      var c = document.createElementNS(ns,"circle");
+      c.setAttribute("cx", p.x); c.setAttribute("cy", p.y); c.setAttribute("r", p.r);
+      c.setAttribute("class","bead bead-upcoming");
+      c.setAttribute("data-idx", idx);
+      svg.appendChild(c);
+    });
+  }
+
+  function updateBeadHighlight(beadsSoFar){
+    var currentIdx = beadsSoFar - 1;
+    var circles = document.querySelectorAll("#beadSvg circle.bead");
+    circles.forEach(function(c){
+      var idx = parseInt(c.getAttribute("data-idx"),10);
+      c.setAttribute("class","bead " + (idx < currentIdx ? "bead-done" : idx === currentIdx ? "bead-current" : "bead-upcoming"));
+    });
+  }
+
+  // ---------- Store (db capability with localStorage fallback) ----------
+  var Store = (function(){
+    var db = null;
+    var ready = (window.claude && window.claude.use ? window.claude.use("db") : Promise.resolve(null)).then(function(d){ db = d; });
+
+    function lsGet(key, fallback){ try{ var v = JSON.parse(localStorage.getItem(key)); return v==null?fallback:v; }catch(e){ return fallback; } }
+    function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+    function addEntry(data){
+      return ready.then(function(){
+        if(db){ return db.collection("entries").add(data).then(function(ref){ return ref.id; }); }
+        var id = "e"+Date.now()+Math.random().toString(36).slice(2,7);
+        var all = lsGet("rosary_entries", {});
+        all[id] = Object.assign({}, data, { id:id });
+        lsSet("rosary_entries", all);
+        window.dispatchEvent(new Event("rosary-entries-changed"));
+        return id;
+      });
+    }
+    function updateEntry(id, patch){
+      if(!id) return Promise.resolve();
+      return ready.then(function(){
+        if(db){ return db.collection("entries").doc(id).update(patch).catch(function(){}); }
+        var all = lsGet("rosary_entries", {});
+        if(all[id]){ all[id] = Object.assign({}, all[id], patch); lsSet("rosary_entries", all); window.dispatchEvent(new Event("rosary-entries-changed")); }
+      });
+    }
+    function subscribeEntries(cb){
+      var unsub = function(){};
+      ready.then(function(){
+        if(db){
+          unsub = db.collection("entries").orderBy("startedAt","desc").limit(30).onSnapshot(function(snap){
+            cb(snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); }));
+          }, function(){ /* fall silent, log stays empty */ });
+        } else {
+          var render = function(){
+            var all = lsGet("rosary_entries", {});
+            var arr = Object.keys(all).map(function(k){ return all[k]; });
+            arr.sort(function(a,b){ return (b.startedAt||"").localeCompare(a.startedAt||""); });
+            cb(arr);
+          };
+          render();
+          window.addEventListener("rosary-entries-changed", render);
+          unsub = function(){ window.removeEventListener("rosary-entries-changed", render); };
+        }
+      });
+      return function(){ unsub(); };
+    }
+    return { addEntry:addEntry, updateEntry:updateEntry, subscribeEntries:subscribeEntries };
+  })();
+
+  // ---------- Speech ----------
+  var synthAvailable = "speechSynthesis" in window;
+
+  // Browser/OS voices vary wildly in quality. There's no reliable metadata
+  // for this, so score on naming conventions the better voices tend to use
+  // (Apple, Google and Microsoft all label their higher-quality voices this
+  // way) and prefer English by default, since these prayers are in English.
+  function voiceScore(v){
+    var n = (v.name || "").toLowerCase();
+    var score = 0;
+    if(/premium|enhanced|neural|natural|studio|siri/.test(n)) score += 100;
+    if(v.lang && v.lang.toLowerCase().indexOf("en") === 0) score += 10;
+    if(v.default) score += 1;
+    return score;
+  }
+
+  function populateVoices(){
+    if(!synthAvailable) return;
+    var voices = speechSynthesis.getVoices().slice().sort(function(a,b){
+      return voiceScore(b) - voiceScore(a) || a.name.localeCompare(b.name);
+    });
+    var sel = document.getElementById("voiceSelect");
+    var previous = sel.value;
+    sel.innerHTML = "";
+    var recommended = voices.filter(function(v){ return voiceScore(v) >= 100; });
+    var other = voices.filter(function(v){ return voiceScore(v) < 100; });
+    function addGroup(label, list){
+      if(!list.length) return;
+      var g = document.createElement("optgroup"); g.label = label;
+      list.forEach(function(v){
+        var o = document.createElement("option");
+        o.value = v.voiceURI; o.textContent = v.name + " (" + v.lang + ")";
+        g.appendChild(o);
+      });
+      sel.appendChild(g);
+    }
+    addGroup("Recommended", recommended);
+    addGroup("Other voices", other);
+    document.getElementById("voiceHint").hidden = recommended.length > 0;
+
+    var saved = null; try{ saved = localStorage.getItem("rosary_voice"); }catch(e){}
+    if(saved && voices.some(function(v){ return v.voiceURI===saved; })) sel.value = saved;
+    else if(previous && voices.some(function(v){ return v.voiceURI===previous; })) sel.value = previous;
+    else if(voices.length) sel.value = voices[0].voiceURI;
+  }
+  if(synthAvailable){
+    populateVoices();
+    speechSynthesis.onvoiceschanged = populateVoices;
+  } else {
+    var vsel = document.getElementById("voiceSelect");
+    vsel.innerHTML = "<option>Text pacing only — no voices found</option>";
+    vsel.disabled = true;
+  }
+
+  function estimateReadMs(text){ return Math.max(1600, text.split(/\s+/).length * 370); }
+
+  function speak(text, onend){
+    if(!synthAvailable){ setTimeout(onend, estimateReadMs(text)); return; }
+    try{
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      var sel = document.getElementById("voiceSelect");
+      var voices = speechSynthesis.getVoices();
+      var chosen = voices.find(function(v){ return v.voiceURI===sel.value; });
+      if(chosen) u.voice = chosen;
+      u.rate = parseFloat(document.getElementById("rateRange").value) || 1;
+      var done = false;
+      u.onend = function(){ if(done) return; done = true; onend(); };
+      u.onerror = function(){ if(done) return; done = true; onend(); };
+      speechSynthesis.speak(u);
+    }catch(e){ setTimeout(onend, estimateReadMs(text)); }
+  }
+
+  // ---------- UI wiring ----------
+  var els = {};
+  ["todayDate","todayMysteryPill","todayMysteryLabel","mysteryName","mysteryWhy",
+   "intentCard","intentInput","resumeRow","resumeText","resumeBtn","discardResumeBtn","beginBtn",
+   "prayerCard","prayerGroup","prayerProgress","prayerLabel","mysteryTitle","prayerText","reflectCue",
+   "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","stopBtn",
+   "doneCard","doneSummary","newRosaryBtn","logList","logEmpty"
+  ].forEach(function(id){ els[id] = document.getElementById(id); });
+
+  var PLAY_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 4l11 6-11 6V4z"/></svg>';
+  var PAUSE_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><rect x="5" y="4" width="4" height="12"/><rect x="11" y="4" width="4" height="12"/></svg>';
+  els.playBtn.innerHTML = PLAY_ICON;
+
+  var todaysSet = getTodaysMysterySet(new Date());
+  document.title = "Rosary Vigil";
+  els.todayDate.textContent = new Date().toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric" });
+  els.todayMysteryPill.style.setProperty("--myst-c", "var(--myst-"+todaysSet.key+")");
+  els.todayMysteryLabel.textContent = todaysSet.name + " Mysteries";
+  els.mysteryName.textContent = todaysSet.name + " Mysteries";
+  els.mysteryWhy.textContent = todaysSet.why;
+
+  var state = { steps:[], set:null, currentIndex:0, playing:false, entryId:null, intention:"", startedAt:null };
+
+  function showOnly(which){
+    els.intentCard.hidden = which!=="intent";
+    els.prayerCard.hidden = which!=="prayer";
+    els.doneCard.hidden = which!=="done";
+  }
+
+  function groupLabel(step){
+    if(step.groupKind==="opening") return "Opening Prayers";
+    if(step.groupKind==="closing") return "Closing Prayers";
+    return ORDINALS[step.decadeIndex] + " Decade — " + state.set.name + " Mysteries";
+  }
+
+  function stepSpokenText(step){
+    if(step.kind==="announce") return step.label + ": " + step.title + ". " + step.text;
+    return step.text;
+  }
+
+  function renderStep(){
+    var step = state.steps[state.currentIndex];
+    els.prayerGroup.textContent = groupLabel(step);
+    els.prayerProgress.textContent = "Step " + (state.currentIndex+1) + " of " + state.steps.length;
+    els.prayerLabel.textContent = step.label;
+    if(step.kind==="announce"){ els.mysteryTitle.hidden=false; els.mysteryTitle.textContent = step.title; els.prayerText.textContent = step.text; }
+    else { els.mysteryTitle.hidden=true; els.prayerText.textContent = step.text; }
+    updateBeadHighlight(step.beadsSoFar);
+    els.beadsCount.textContent = step.beadsSoFar>0 ? ("Bead " + step.beadsSoFar + " of 59") : "Before the first bead";
+    els.playBtn.innerHTML = state.playing ? PAUSE_ICON : PLAY_ICON;
+    els.playBtn.setAttribute("aria-label", state.playing ? "Pause" : "Play");
+  }
+
+  function persistSession(){
+    try{
+      localStorage.setItem("rosary_session", JSON.stringify({
+        entryId: state.entryId, mysterySetKey: state.set.key, currentIndex: state.currentIndex,
+        intention: state.intention, startedAt: state.startedAt
+      }));
+    }catch(e){}
+  }
+  function persistProgress(status){
+    Store.updateEntry(state.entryId, { stepsCompleted: state.currentIndex+1, status: status, updatedAt: new Date().toISOString() });
+    persistSession();
+  }
+
+  function goTo(i, autoSpeak){
+    if(i<0 || i>=state.steps.length) return;
+    els.reflectCue.hidden = true;
+    state.currentIndex = i;
+    renderStep();
+    persistProgress("in_progress");
+    if(autoSpeak && state.playing) speakCurrent();
+  }
+
+  function speakCurrent(){
+    var step = state.steps[state.currentIndex];
+    speak(stepSpokenText(step), function(){
+      if(!state.playing) return;
+      if(state.currentIndex+1 >= state.steps.length){ finishRosary(); return; }
+      // Give a mystery's meditation room to land before moving into the decade's Our Father.
+      var isMystery = step.kind === "announce";
+      var pauseMs = isMystery ? 4200 : 550;
+      if(isMystery) els.reflectCue.hidden = false;
+      setTimeout(function(){
+        els.reflectCue.hidden = true;
+        if(state.playing) goTo(state.currentIndex+1, true);
+      }, pauseMs);
+    });
+  }
+
+  function finishRosary(){
+    state.playing = false;
+    Store.updateEntry(state.entryId, { status:"completed", stepsCompleted: state.steps.length, completedAt: new Date().toISOString() });
+    try{ localStorage.removeItem("rosary_session"); }catch(e){}
+    els.doneSummary.textContent = state.intention
+      ? "Offered for " + state.intention + ", through the " + state.set.name + " Mysteries."
+      : "Prayed through the " + state.set.name + " Mysteries.";
+    showOnly("done");
+  }
+
+  function setAside(){
+    state.playing = false;
+    els.reflectCue.hidden = true;
+    if(synthAvailable) speechSynthesis.cancel();
+    persistProgress("partial");
+    checkResume();
+    showOnly("intent");
+  }
+
+  function checkResume(){
+    var s = null;
+    try{ s = JSON.parse(localStorage.getItem("rosary_session")); }catch(e){}
+    if(s && s.entryId){
+      var set = MYSTERY_SETS[s.mysterySetKey];
+      var stepsLen = buildSteps(set).length;
+      els.resumeText.textContent = "You have a " + set.name + " Mystery Rosary in progress" +
+        (s.intention ? (", offered for " + s.intention) : "") +
+        " — step " + Math.min(s.currentIndex+1, stepsLen) + " of " + stepsLen + ".";
+      els.resumeRow.hidden = false;
+    } else {
+      els.resumeRow.hidden = true;
+    }
+  }
+
+  els.beginBtn.addEventListener("click", function(){
+    state.intention = els.intentInput.value.trim();
+    state.set = getTodaysMysterySet(new Date());
+    state.steps = buildSteps(state.set);
+    state.startedAt = new Date().toISOString();
+    state.currentIndex = 0;
+    state.playing = true;
+    Store.addEntry({
+      startedAt: state.startedAt, mysterySet: state.set.key, mysterySetName: state.set.name,
+      intention: state.intention, status:"in_progress", stepsCompleted:0, totalSteps: state.steps.length
+    }).then(function(id){
+      state.entryId = id;
+      renderBeadTrack();
+      showOnly("prayer");
+      renderStep();
+      persistSession();
+      speakCurrent();
+    });
+  });
+
+  els.resumeBtn.addEventListener("click", function(){
+    var s = null;
+    try{ s = JSON.parse(localStorage.getItem("rosary_session")); }catch(e){}
+    if(!s) return;
+    state.entryId = s.entryId;
+    state.set = MYSTERY_SETS[s.mysterySetKey];
+    state.intention = s.intention || "";
+    state.startedAt = s.startedAt;
+    state.steps = buildSteps(state.set);
+    state.currentIndex = Math.min(s.currentIndex, state.steps.length-1);
+    state.playing = true;
+    renderBeadTrack();
+    showOnly("prayer");
+    renderStep();
+    speakCurrent();
+  });
+
+  els.discardResumeBtn.addEventListener("click", function(){
+    var s = null;
+    try{ s = JSON.parse(localStorage.getItem("rosary_session")); }catch(e){}
+    if(s && s.entryId) Store.updateEntry(s.entryId, { status:"partial", updatedAt: new Date().toISOString() });
+    try{ localStorage.removeItem("rosary_session"); }catch(e){}
+    els.resumeRow.hidden = true;
+  });
+
+  els.playBtn.addEventListener("click", function(){
+    if(!state.playing){ state.playing = true; els.playBtn.innerHTML = PAUSE_ICON; els.playBtn.setAttribute("aria-label","Pause"); speakCurrent(); }
+    else { state.playing = false; els.reflectCue.hidden = true; if(synthAvailable) speechSynthesis.cancel(); els.playBtn.innerHTML = PLAY_ICON; els.playBtn.setAttribute("aria-label","Play"); persistProgress("in_progress"); }
+  });
+  els.prevBtn.addEventListener("click", function(){ if(synthAvailable) speechSynthesis.cancel(); goTo(state.currentIndex-1, state.playing); });
+  els.nextBtn.addEventListener("click", function(){ if(synthAvailable) speechSynthesis.cancel(); goTo(state.currentIndex+1, state.playing); });
+  els.stopBtn.addEventListener("click", setAside);
+  els.newRosaryBtn.addEventListener("click", function(){ els.intentInput.value=""; checkResume(); showOnly("intent"); });
+
+  els.voiceSelect.addEventListener("change", function(){ try{ localStorage.setItem("rosary_voice", els.voiceSelect.value); }catch(e){} });
+
+  function statusLabel(e){
+    if(e.status==="completed") return "Completed";
+    var n = e.stepsCompleted||0, t = e.totalSteps||80;
+    return (e.status==="partial" ? "Set aside — " : "In progress — ") + n + " of " + t + " steps";
+  }
+  function mysteryDot(key){ return "color-mix(in srgb, var(--myst-"+(key||"joyful")+") 100%, transparent)"; }
+
+  Store.subscribeEntries(function(list){
+    els.logList.innerHTML = "";
+    els.logEmpty.hidden = list.length>0;
+    list.forEach(function(e){
+      var li = document.createElement("li"); li.className="log-item";
+      var dot = document.createElement("span"); dot.className="log-dot"; dot.style.background = mysteryDot(e.mysterySet);
+      var body = document.createElement("div"); body.className="log-body";
+      var dateLine = document.createElement("p"); dateLine.className="log-date";
+      dateLine.textContent = e.startedAt ? new Date(e.startedAt).toLocaleDateString(undefined,{month:"short",day:"numeric"}) + " · " + (e.mysterySetName||"") : "";
+      var intentLine = document.createElement("p"); intentLine.className="log-intent";
+      intentLine.textContent = e.intention ? ("“" + e.intention + "”") : "No intention set";
+      var statusEl = document.createElement("span"); statusEl.className = "log-status " + (e.status==="completed" ? "log-status-completed" : "");
+      statusEl.textContent = statusLabel(e);
+      body.appendChild(dateLine); body.appendChild(intentLine); body.appendChild(statusEl);
+      li.appendChild(dot); li.appendChild(body);
+      els.logList.appendChild(li);
+    });
+  });
+
+  checkResume();
+  showOnly("intent");
+})();
+</script>
