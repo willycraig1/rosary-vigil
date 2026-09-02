@@ -96,6 +96,8 @@
   .voice-search:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .voice-row{ display:flex; gap:8px; align-items:center; margin-top:10px; }
   .voice-row select{ flex:1; min-width:0; background:var(--ground); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 9px; font-size:.85rem; }
+  .btn-refresh{ width:34px; height:34px; font-size:1rem; flex:none; transition:transform .4s ease; }
+  .btn-refresh.is-spinning{ transform:rotate(360deg); }
   .btn-preview{ padding:8px 14px; font-size:.82rem; flex:none; }
   .pace-row{ display:flex; align-items:center; gap:10px; margin-top:14px; font-size:.85rem; color:var(--ink-soft); }
   .pace-row input{ flex:1; }
@@ -199,6 +201,7 @@
       <input type="search" id="voiceSearch" class="voice-search" placeholder="Search voices…" aria-label="Search voices">
       <div class="voice-row">
         <select id="voiceSelect" aria-label="Voice"></select>
+        <button class="icon-btn btn-refresh" id="refreshVoicesBtn" type="button" aria-label="Refresh voice list" title="Refresh voice list">⟳</button>
         <button class="btn btn-ghost btn-preview" id="previewVoiceBtn" type="button">Hear a sample</button>
       </div>
       <label class="pace-row">Pace <input type="range" id="rateRange" min="0.7" max="1.3" step="0.05" value="1"></label>
@@ -545,7 +548,7 @@
   ["todayDate","todayMysteryPill","todayMysteryLabel","mysteryName","mysteryWhy",
    "intentCard","intentInput","resumeRow","resumeText","resumeBtn","discardResumeBtn","beginBtn",
    "prayerCard","prayerGroup","prayerProgress","prayerLabel","mysteryTitle","prayerText","reflectCue",
-   "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceSearch","voiceHint","voiceStatus","previewVoiceBtn","stopBtn",
+   "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceSearch","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
    "doneCard","doneSummary","newRosaryBtn","logList","logEmpty"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
@@ -721,6 +724,16 @@
 
   els.voiceSelect.addEventListener("change", function(){ try{ localStorage.setItem("rosary_voice", els.voiceSelect.value); }catch(e){} });
   els.voiceSearch.addEventListener("input", filterVoiceOptions);
+  els.refreshVoicesBtn.addEventListener("click", function(){
+    // Network voices (Chrome's "Google" ones) can take longer than any
+    // fixed timeout to finish enumerating, especially on a slow
+    // connection — so rather than guess a wait time, give an explicit
+    // way to re-check whenever the list looks incomplete.
+    populateVoices();
+    els.refreshVoicesBtn.classList.remove("is-spinning");
+    void els.refreshVoicesBtn.offsetWidth; // restart the animation on repeat clicks
+    els.refreshVoicesBtn.classList.add("is-spinning");
+  });
   els.previewVoiceBtn.addEventListener("click", function(){
     // A single, isolated utterance — no cancel(), no queue, no multi-step
     // sequencing — so this is the cleanest way to confirm the selected
