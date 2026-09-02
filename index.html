@@ -477,6 +477,12 @@
   if(synthAvailable){
     populateVoices();
     speechSynthesis.onvoiceschanged = populateVoices;
+    // Safari's onvoiceschanged is unreliable — often never fires at all —
+    // and the first getVoices() call on load can return an incomplete
+    // list before the OS voice bank has finished warming up. Poll a few
+    // times over the first few seconds so a real voice list still lands
+    // without depending on that event.
+    [300, 800, 1500, 3000].forEach(function(ms){ setTimeout(populateVoices, ms); });
   } else {
     var vsel = document.getElementById("voiceSelect");
     vsel.innerHTML = "<option>Text pacing only — no voices found</option>";
