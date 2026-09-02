@@ -429,6 +429,9 @@
     var n = (v.name || "").toLowerCase();
     var score = 0;
     if(/premium|enhanced|neural|natural|studio|siri/.test(n)) score += 100;
+    // Chrome bundles a handful of free, network-backed "Google" voices —
+    // solid quality, zero download required, worth recommending too.
+    if(/^google\b/.test(n)) score += 90;
     if(v.lang && v.lang.toLowerCase().indexOf("en") === 0) score += 10;
     if(v.default) score += 1;
     return score;
