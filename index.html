@@ -72,6 +72,9 @@
   .prayer-label{ font-size:clamp(1.5rem,3vw,1.9rem); transition:opacity .18s ease; }
   .mystery-title{ font-family:var(--font-display); font-style:italic; font-size:1.2rem; color:var(--accent); margin-top:-10px; }
   .prayer-text{ font-family:var(--font-display); font-size:clamp(1.25rem,2.4vw,1.55rem); line-height:1.55; color:var(--ink); max-width:60ch; transition:opacity .18s ease; }
+  .prayer-text .word{ border-radius:4px; padding:0 1px; margin:0 -1px; transition:background-color .12s ease; }
+  .prayer-text .word.is-current{ background:color-mix(in srgb, var(--accent) 38%, transparent); }
+  @media (prefers-reduced-motion: reduce){ .prayer-text .word{ transition:none; } }
 
   .beads-wrap{ display:flex; flex-direction:column; align-items:center; gap:8px; padding-top:6px; }
   #beadSvg{ width:100%; max-width:280px; display:block; }
@@ -504,7 +507,47 @@
 
   function estimateReadMs(text){ return Math.max(1600, text.split(/\s+/).length * 370); }
 
-  function speak(text, onend){
+  // Word-by-word highlighting, driven by the utterance's boundary event.
+  // Support is best-effort by nature — some engines (notably network
+  // voices) never fire it at all — so this only ever adds a visual cue on
+  // top of working playback, never something the app depends on.
+  var wordSpanOffset = 0; // where the displayed text begins within the full spoken string
+  function renderPrayerWords(text){
+    var container = els.prayerText;
+    container.innerHTML = "";
+    var re = /\S+|\s+/g, match;
+    while((match = re.exec(text))){
+      var token = match[0];
+      if(/\S/.test(token)){
+        var span = document.createElement("span");
+        span.className = "word";
+        span.textContent = token;
+        span.dataset.start = match.index;
+        span.dataset.end = match.index + token.length;
+        container.appendChild(span);
+      } else {
+        container.appendChild(document.createTextNode(token));
+      }
+    }
+  }
+  function highlightWordAt(charIndex){
+    var localIndex = charIndex - wordSpanOffset;
+    var current = null;
+    Array.prototype.forEach.call(els.prayerText.querySelectorAll(".word"), function(span){
+      var start = parseInt(span.dataset.start, 10);
+      var isMatch = localIndex >= start && localIndex < parseInt(span.dataset.end, 10);
+      span.classList.toggle("is-current", isMatch);
+      if(isMatch) current = span;
+    });
+    return current;
+  }
+  function clearWordHighlight(){
+    Array.prototype.forEach.call(els.prayerText.querySelectorAll(".word.is-current"), function(span){
+      span.classList.remove("is-current");
+    });
+  }
+
+  function speak(text, onend, highlight){
     if(!synthAvailable){ setTimeout(onend, estimateReadMs(text)); return; }
     try{
       var fire = function(){
@@ -522,10 +565,15 @@
         u.onstart = function(){
           if(statusEl) statusEl.textContent = chosen ? ("Speaking as: " + chosen.name) : "Speaking as: browser default";
         };
-        u.onend = function(){ if(done) return; done = true; onend(); };
+        u.onboundary = function(e){
+          if(!highlight) return; // a preview sample isn't the on-screen text — nothing to highlight
+          if(e.name && e.name !== "word") return; // some engines also report sentence boundaries
+          highlightWordAt(e.charIndex);
+        };
+        u.onend = function(){ if(done) return; done = true; clearWordHighlight(); onend(); };
         u.onerror = function(e){
           if(statusEl) statusEl.textContent = "Voice engine error: " + (e && e.error ? e.error : "unknown") + " — falling back to text pacing.";
-          if(done) return; done = true; onend();
+          if(done) return; done = true; clearWordHighlight(); onend();
         };
         speechSynthesis.speak(u);
       };
@@ -588,8 +636,19 @@
     els.prayerGroup.textContent = groupLabel(step);
     els.prayerProgress.textContent = "Step " + (state.currentIndex+1) + " of " + state.steps.length;
     els.prayerLabel.textContent = step.label;
-    if(step.kind==="announce"){ els.mysteryTitle.hidden=false; els.mysteryTitle.textContent = step.title; els.prayerText.textContent = step.text; }
-    else { els.mysteryTitle.hidden=true; els.prayerText.textContent = step.text; }
+    // Highlighting tracks position within the spoken string as a whole
+    // (stepSpokenText), but only the meditation/prayer text itself is
+    // rendered as word spans — the label/title prefix an "announce" step
+    // speaks first has no on-screen equivalent to highlight, so its
+    // length becomes the offset boundary events need to skip.
+    if(step.kind==="announce"){
+      els.mysteryTitle.hidden=false; els.mysteryTitle.textContent = step.title;
+      wordSpanOffset = (step.label + ": " + step.title + ". ").length;
+    } else {
+      els.mysteryTitle.hidden=true;
+      wordSpanOffset = 0;
+    }
+    renderPrayerWords(step.text);
     updateBeadHighlight(step.beadsSoFar);
     els.beadsCount.textContent = step.beadsSoFar>0 ? ("Bead " + step.beadsSoFar + " of 59") : "Before the first bead";
     els.playBtn.innerHTML = state.playing ? PAUSE_ICON : PLAY_ICON;
@@ -631,7 +690,7 @@
         els.reflectCue.hidden = true;
         if(state.playing) goTo(state.currentIndex+1, true);
       }, pauseMs);
-    });
+    }, true);
   }
 
   function finishRosary(){
