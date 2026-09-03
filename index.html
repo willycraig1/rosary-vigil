@@ -573,6 +573,30 @@
     });
   }
 
+  // Some engines — notably Chrome's free network-backed "Google" voices —
+  // never fire onboundary at all (confirmed: zero boundary events across
+  // an entire utterance, vs. one per word for every local system voice
+  // tested, enhanced or not). Rather than leave the text inert for those
+  // voices, pace an estimated highlight across the utterance's expected
+  // duration. It's a guess, not a sync — real boundary events, if any
+  // arrive, always take over immediately and cancel this.
+  function wordStarts(text){
+    var out = [], re = /\S+/g, m;
+    while((m = re.exec(text))) out.push({ start:m.index });
+    return out;
+  }
+  function scheduleFallbackHighlight(container, offset, text, rate){
+    var words = wordStarts(text);
+    if(!words.length) return function(){};
+    var totalChars = text.length;
+    var estMs = estimateReadMs(text) / (rate || 1);
+    var timers = words.map(function(w){
+      var t = estMs * (w.start / totalChars);
+      return setTimeout(function(){ highlightWordAt(container, offset, w.start); }, t);
+    });
+    return function(){ timers.forEach(clearTimeout); };
+  }
+
   // highlightTarget is optional: { container, offset } — the element whose
   // word spans should track this utterance, and where its text begins
   // within the full spoken string. Omit it for utterances with no on-screen
@@ -592,18 +616,32 @@
           statusEl.textContent = chosen ? ("Requested: " + chosen.name) : "Requested: browser default";
         }
         var done = false;
+        var boundaryFired = false;
+        var cancelFallback = null;
         u.onstart = function(){
           if(statusEl) statusEl.textContent = chosen ? ("Speaking as: " + chosen.name) : "Speaking as: browser default";
+          if(highlightTarget){
+            // Give a real boundary event a brief moment to prove itself —
+            // every voice that supports them fires the first one almost
+            // immediately — before assuming this voice has none at all.
+            setTimeout(function(){
+              if(!boundaryFired && !done){
+                cancelFallback = scheduleFallbackHighlight(highlightTarget.container, highlightTarget.offset||0, text, u.rate);
+              }
+            }, 300);
+          }
         };
         u.onboundary = function(e){
           if(!highlightTarget) return; // a preview sample isn't the on-screen text — nothing to highlight
           if(e.name && e.name !== "word") return; // some engines also report sentence boundaries
+          boundaryFired = true;
+          if(cancelFallback){ cancelFallback(); cancelFallback = null; }
           highlightWordAt(highlightTarget.container, highlightTarget.offset||0, e.charIndex);
         };
-        u.onend = function(){ if(done) return; done = true; if(highlightTarget) clearWordHighlight(highlightTarget.container); onend(); };
+        u.onend = function(){ if(done) return; done = true; if(cancelFallback) cancelFallback(); if(highlightTarget) clearWordHighlight(highlightTarget.container); onend(); };
         u.onerror = function(e){
           if(statusEl) statusEl.textContent = "Voice engine error: " + (e && e.error ? e.error : "unknown") + " — falling back to text pacing.";
-          if(done) return; done = true; if(highlightTarget) clearWordHighlight(highlightTarget.container); onend();
+          if(done) return; done = true; if(cancelFallback) cancelFallback(); if(highlightTarget) clearWordHighlight(highlightTarget.container); onend();
         };
         speechSynthesis.speak(u);
       };

@@ -21,6 +21,8 @@ All three run identical code and behave the same — the log is always local to 
 
 Voice output uses the browser/OS's built-in speech synthesis. The page scores and sorts available voices, surfacing any Enhanced/Premium/Neural voice (and Chrome's free "Google" network voices) under "Recommended," with a search box to find a specific one in a long list. For a noticeably better voice on macOS, install one via **System Settings → Accessibility → Spoken Content → System Voice → Manage Voices**, then reload — Safari in particular can take a few seconds to notice a newly-installed voice, which the page now polls for automatically. Note: Siri's own voices aren't reachable by any browser or app — Apple keeps that engine private, separate from the public voice APIs every browser uses.
 
+Word-by-word highlighting tracks the voice engine's own word-boundary events when a voice reports them — confirmed working for every local system voice tested (Enhanced ones included, not just Ava). Chrome's free network "Google" voices never report boundaries at all — a Chromium limitation, not something a page can ask around — so for those the highlight instead paces itself across an estimate of the utterance's length. It's a deliberate approximation, not a real sync, for the one class of voice that gives the page nothing to sync to.
+
 ---
 
 Built collaboratively with Claude.
