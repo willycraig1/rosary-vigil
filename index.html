@@ -12,6 +12,7 @@
     --font-display:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
     --font-body:'Karla', -apple-system, 'Segoe UI', sans-serif;
     --font-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%238489A6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -20,6 +21,7 @@
       --accent:#E4A857; --accent-strong:#F0BC78; --accent-ink:#211405;
       --myst-joyful:#D9A06B; --myst-sorrowful:#C2596A; --myst-glorious:#D4B94A; --myst-luminous:#7C97CE;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+      --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23726D93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
     }
   }
   :root[data-theme="dark"]{
@@ -28,6 +30,7 @@
     --accent:#E4A857; --accent-strong:#F0BC78; --accent-ink:#211405;
     --myst-joyful:#D9A06B; --myst-sorrowful:#C2596A; --myst-glorious:#D4B94A; --myst-luminous:#7C97CE;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23726D93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
   }
 
   *{ box-sizing:border-box; }
@@ -99,7 +102,7 @@
   .btn-stop{ margin-left:auto; }
 
   .voice-row{ display:flex; gap:8px; align-items:center; margin-top:14px; }
-  .voice-row select{ flex:1; min-width:0; background:var(--ground); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 9px; font-size:.85rem; }
+  .voice-row select{ flex:1; min-width:0; background:var(--ground) var(--select-arrow) no-repeat right 11px center/13px; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 32px 8px 9px; font-size:.85rem; appearance:none; -webkit-appearance:none; -moz-appearance:none; }
   .btn-refresh{ width:34px; height:34px; font-size:1rem; flex:none; transition:transform .4s ease; }
   .btn-refresh.is-spinning{ transform:rotate(360deg); }
   .btn-preview{ padding:8px 14px; font-size:.82rem; flex:none; }
@@ -115,7 +118,7 @@
   .other-prayer-card{ display:flex; flex-direction:column; gap:16px; }
   .other-prayer-card .hint{ color:var(--ink-soft); font-size:.92rem; line-height:1.5; max-width:56ch; }
   .other-prayer-row{ display:flex; gap:12px; align-items:center; }
-  .other-prayer-row select{ flex:1; min-width:0; background:var(--ground); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:.9rem; }
+  .other-prayer-row select{ flex:1; min-width:0; background:var(--ground) var(--select-arrow) no-repeat right 13px center/14px; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 36px 10px 12px; font-size:.9rem; appearance:none; -webkit-appearance:none; -moz-appearance:none; }
   .other-prayer-card .prayer-text{ margin-top:2px; }
 
   .sidebar{ display:flex; flex-direction:column; gap:22px; }
