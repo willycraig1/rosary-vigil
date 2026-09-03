@@ -109,6 +109,12 @@
   .done-card p#doneSummary{ color:var(--ink-soft); margin-top:12px; line-height:1.6; max-width:50ch; }
   .done-card .btn{ margin-top:24px; }
 
+  .other-prayer-card{ display:flex; flex-direction:column; gap:16px; }
+  .other-prayer-card .hint{ color:var(--ink-soft); font-size:.92rem; line-height:1.5; max-width:56ch; }
+  .other-prayer-row{ display:flex; gap:12px; align-items:center; }
+  .other-prayer-row select{ flex:1; min-width:0; background:var(--ground); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:.9rem; }
+  .other-prayer-card .prayer-text{ margin-top:2px; }
+
   .sidebar{ display:flex; flex-direction:column; gap:22px; }
   .panel{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:26px 26px 24px; }
   .panel h3{ font-size:1.05rem; }
@@ -194,6 +200,19 @@
       <p id="doneSummary"></p>
       <button class="btn btn-primary" id="newRosaryBtn">Begin again</button>
     </section>
+
+    <section class="card other-prayer-card" id="otherPrayerCard">
+      <div class="prayer-meta">
+        <span>Other Prayers</span>
+      </div>
+      <h2 class="prayer-label">Play a single prayer</h2>
+      <p class="hint">Choose any prayer to hear it on its own, spoken and highlighted the same way as the Rosary above.</p>
+      <div class="other-prayer-row">
+        <select id="otherPrayerSelect" aria-label="Choose a prayer"></select>
+        <button class="icon-btn icon-btn-play" id="otherPlayBtn" aria-label="Play"></button>
+      </div>
+      <p class="prayer-text" id="otherPrayerText"></p>
+    </section>
   </main>
 
   <aside class="sidebar">
@@ -239,6 +258,19 @@
   var FATIMA = "O my Jesus, forgive us our sins, save us from the fires of hell, lead all souls to Heaven, especially those who have most need of Thy mercy.";
   var HAIL_HOLY_QUEEN = "Hail, holy Queen, Mother of mercy, our life, our sweetness, and our hope. To thee do we cry, poor banished children of Eve. To thee do we send up our sighs, mourning and weeping in this valley of tears. Turn then, most gracious advocate, thine eyes of mercy toward us, and after this our exile show unto us the blessed fruit of thy womb, Jesus. O clement, O loving, O sweet Virgin Mary.";
   var CLOSING_PRAYER = "Let us pray. O God, whose only-begotten Son, by His life, death, and resurrection, has purchased for us the rewards of eternal life; grant, we beseech Thee, that meditating upon these mysteries of the most holy Rosary of the Blessed Virgin Mary, we may imitate what they contain and obtain what they promise, through the same Christ our Lord. Amen.";
+
+  // The "Other Prayers" card starts with the same texts already used to
+  // build the Rosary sequence above, offered individually.
+  var OTHER_PRAYERS = [
+    { label:"Sign of the Cross", text: SIGN_OF_CROSS },
+    { label:"Apostles’ Creed", text: CREED },
+    { label:"Our Father", text: OUR_FATHER },
+    { label:"Hail Mary", text: HAIL_MARY },
+    { label:"Glory Be", text: GLORY_BE },
+    { label:"O My Jesus (Fatima Prayer)", text: FATIMA },
+    { label:"Hail, Holy Queen", text: HAIL_HOLY_QUEEN },
+    { label:"Closing Prayer", text: CLOSING_PRAYER }
+  ];
 
   var ORDINALS = ["First","Second","Third","Fourth","Fifth"];
 
@@ -488,9 +520,8 @@
   // Support is best-effort by nature — some engines (notably network
   // voices) never fire it at all — so this only ever adds a visual cue on
   // top of working playback, never something the app depends on.
-  var wordSpanOffset = 0; // where the displayed text begins within the full spoken string
-  function renderPrayerWords(text){
-    var container = els.prayerText;
+  var wordSpanOffset = 0; // where the primary card's displayed text begins within its full spoken string
+  function renderPrayerWords(container, text){
     container.innerHTML = "";
     var re = /\S+|\s+/g, match;
     while((match = re.exec(text))){
@@ -507,10 +538,10 @@
       }
     }
   }
-  function highlightWordAt(charIndex){
-    var localIndex = charIndex - wordSpanOffset;
+  function highlightWordAt(container, offset, charIndex){
+    var localIndex = charIndex - offset;
     var current = null;
-    Array.prototype.forEach.call(els.prayerText.querySelectorAll(".word"), function(span){
+    Array.prototype.forEach.call(container.querySelectorAll(".word"), function(span){
       var start = parseInt(span.dataset.start, 10);
       var isMatch = localIndex >= start && localIndex < parseInt(span.dataset.end, 10);
       span.classList.toggle("is-current", isMatch);
@@ -518,13 +549,17 @@
     });
     return current;
   }
-  function clearWordHighlight(){
-    Array.prototype.forEach.call(els.prayerText.querySelectorAll(".word.is-current"), function(span){
+  function clearWordHighlight(container){
+    Array.prototype.forEach.call(container.querySelectorAll(".word.is-current"), function(span){
       span.classList.remove("is-current");
     });
   }
 
-  function speak(text, onend, highlight){
+  // highlightTarget is optional: { container, offset } — the element whose
+  // word spans should track this utterance, and where its text begins
+  // within the full spoken string. Omit it for utterances with no on-screen
+  // words to highlight (e.g. the voice preview sample).
+  function speak(text, onend, highlightTarget){
     if(!synthAvailable){ setTimeout(onend, estimateReadMs(text)); return; }
     try{
       var fire = function(){
@@ -543,14 +578,14 @@
           if(statusEl) statusEl.textContent = chosen ? ("Speaking as: " + chosen.name) : "Speaking as: browser default";
         };
         u.onboundary = function(e){
-          if(!highlight) return; // a preview sample isn't the on-screen text — nothing to highlight
+          if(!highlightTarget) return; // a preview sample isn't the on-screen text — nothing to highlight
           if(e.name && e.name !== "word") return; // some engines also report sentence boundaries
-          highlightWordAt(e.charIndex);
+          highlightWordAt(highlightTarget.container, highlightTarget.offset||0, e.charIndex);
         };
-        u.onend = function(){ if(done) return; done = true; clearWordHighlight(); onend(); };
+        u.onend = function(){ if(done) return; done = true; if(highlightTarget) clearWordHighlight(highlightTarget.container); onend(); };
         u.onerror = function(e){
           if(statusEl) statusEl.textContent = "Voice engine error: " + (e && e.error ? e.error : "unknown") + " — falling back to text pacing.";
-          if(done) return; done = true; clearWordHighlight(); onend();
+          if(done) return; done = true; if(highlightTarget) clearWordHighlight(highlightTarget.container); onend();
         };
         speechSynthesis.speak(u);
       };
@@ -574,12 +609,14 @@
    "intentCard","intentInput","resumeRow","resumeText","resumeBtn","discardResumeBtn","beginBtn",
    "prayerCard","prayerGroup","prayerProgress","prayerLabel","mysteryTitle","prayerText","reflectCue",
    "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
-   "doneCard","doneSummary","newRosaryBtn","logList","logEmpty"
+   "doneCard","doneSummary","newRosaryBtn","logList","logEmpty",
+   "otherPrayerSelect","otherPrayerText","otherPlayBtn"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
   var PLAY_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 4l11 6-11 6V4z"/></svg>';
   var PAUSE_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><rect x="5" y="4" width="4" height="12"/><rect x="11" y="4" width="4" height="12"/></svg>';
   els.playBtn.innerHTML = PLAY_ICON;
+  els.otherPlayBtn.innerHTML = PLAY_ICON;
 
   var todaysSet = getTodaysMysterySet(new Date());
   document.title = "Rosary Vigil";
@@ -625,7 +662,7 @@
       els.mysteryTitle.hidden=true;
       wordSpanOffset = 0;
     }
-    renderPrayerWords(step.text);
+    renderPrayerWords(els.prayerText, step.text);
     updateBeadHighlight(step.beadsSoFar);
     els.beadsCount.textContent = step.beadsSoFar>0 ? ("Bead " + step.beadsSoFar + " of 59") : "Before the first bead";
     els.playBtn.innerHTML = state.playing ? PAUSE_ICON : PLAY_ICON;
@@ -667,7 +704,16 @@
         els.reflectCue.hidden = true;
         if(state.playing) goTo(state.currentIndex+1, true);
       }, pauseMs);
-    }, true);
+    }, { container: els.prayerText, offset: wordSpanOffset });
+  }
+
+  function pauseRosary(){
+    state.playing = false;
+    els.reflectCue.hidden = true;
+    if(synthAvailable) speechSynthesis.cancel();
+    els.playBtn.innerHTML = PLAY_ICON;
+    els.playBtn.setAttribute("aria-label","Play");
+    persistProgress("in_progress");
   }
 
   function finishRosary(){
@@ -750,8 +796,11 @@
   });
 
   els.playBtn.addEventListener("click", function(){
-    if(!state.playing){ state.playing = true; els.playBtn.innerHTML = PAUSE_ICON; els.playBtn.setAttribute("aria-label","Pause"); speakCurrent(); }
-    else { state.playing = false; els.reflectCue.hidden = true; if(synthAvailable) speechSynthesis.cancel(); els.playBtn.innerHTML = PLAY_ICON; els.playBtn.setAttribute("aria-label","Play"); persistProgress("in_progress"); }
+    if(!state.playing){
+      if(otherState.playing) stopOtherPrayer(); // the two cards share one speech engine — only one plays at a time
+      state.playing = true; els.playBtn.innerHTML = PAUSE_ICON; els.playBtn.setAttribute("aria-label","Pause"); speakCurrent();
+    }
+    else { pauseRosary(); }
   });
   els.prevBtn.addEventListener("click", function(){ goTo(state.currentIndex-1, state.playing); });
   els.nextBtn.addEventListener("click", function(){ goTo(state.currentIndex+1, state.playing); });
@@ -775,6 +824,56 @@
     // voice actually reaches the engine, independent of everything else.
     speak("Hail Mary, full of grace, the Lord is with thee.", function(){});
   });
+
+  // ---------- Other Prayers card ----------
+  // A standalone player for any one of the same prayer texts the Rosary
+  // above is built from, reusing the same speak()/highlight machinery.
+  var otherState = { playing:false };
+
+  function populateOtherPrayerOptions(){
+    els.otherPrayerSelect.innerHTML = "";
+    OTHER_PRAYERS.forEach(function(p, idx){
+      var o = document.createElement("option");
+      o.value = idx; o.textContent = p.label;
+      els.otherPrayerSelect.appendChild(o);
+    });
+  }
+  function renderOtherPrayerText(){
+    var idx = parseInt(els.otherPrayerSelect.value, 10) || 0;
+    renderPrayerWords(els.otherPrayerText, OTHER_PRAYERS[idx].text);
+  }
+  function stopOtherPrayer(){
+    otherState.playing = false;
+    if(synthAvailable) speechSynthesis.cancel();
+    clearWordHighlight(els.otherPrayerText);
+    els.otherPlayBtn.innerHTML = PLAY_ICON;
+    els.otherPlayBtn.setAttribute("aria-label","Play");
+  }
+  function playOtherPrayer(){
+    if(state.playing) pauseRosary(); // share one speech engine — only one card speaks at a time
+    var idx = parseInt(els.otherPrayerSelect.value, 10) || 0;
+    var prayer = OTHER_PRAYERS[idx];
+    otherState.playing = true;
+    els.otherPlayBtn.innerHTML = PAUSE_ICON;
+    els.otherPlayBtn.setAttribute("aria-label","Pause");
+    renderOtherPrayerText();
+    speak(prayer.text, function(){
+      if(!otherState.playing) return; // already stopped/superseded — don't clobber a later play
+      otherState.playing = false;
+      els.otherPlayBtn.innerHTML = PLAY_ICON;
+      els.otherPlayBtn.setAttribute("aria-label","Play");
+    }, { container: els.otherPrayerText, offset: 0 });
+  }
+  els.otherPlayBtn.addEventListener("click", function(){
+    if(otherState.playing) stopOtherPrayer();
+    else playOtherPrayer();
+  });
+  els.otherPrayerSelect.addEventListener("change", function(){
+    stopOtherPrayer();
+    renderOtherPrayerText();
+  });
+  populateOtherPrayerOptions();
+  renderOtherPrayerText();
 
   function statusLabel(e){
     if(e.status==="completed") return "Completed";
