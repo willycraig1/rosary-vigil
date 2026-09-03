@@ -7,7 +7,7 @@ A paced companion for praying the Rosary — spoken aloud in sync with the on-sc
 - Pauses for a few seconds after each Mystery's meditation before moving on, so it has room to land.
 - Sets an intention once, then runs on its own — pause, resume, or step through manually at any point.
 - Keeps a log (date, Mystery set, intention, completion) in the browser's own local storage — no account or login involved. Deliberate tradeoff: the log stays with whichever browser you used, not shared across browsers or devices.
-- A second card below the Rosary plays any single prayer on its own — Sign of the Cross, Apostles' Creed, Our Father, Hail Mary, Glory Be, O My Jesus, Hail Holy Queen, or the Closing Prayer — spoken and word-highlighted the same way.
+- A second card below the Rosary plays any single prayer on its own, spoken and word-highlighted the same way: the eight Rosary components, plus the Peace Prayer of St. Francis, Act of Contrition, Anima Christi, Memorare, the Angelus, and the Saint Michael Prayer (texts from [catholicity.com](https://www.catholicity.com/prayer/prayers.html)).
 
 ## Where this lives
 

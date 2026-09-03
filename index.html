@@ -259,8 +259,20 @@
   var HAIL_HOLY_QUEEN = "Hail, holy Queen, Mother of mercy, our life, our sweetness, and our hope. To thee do we cry, poor banished children of Eve. To thee do we send up our sighs, mourning and weeping in this valley of tears. Turn then, most gracious advocate, thine eyes of mercy toward us, and after this our exile show unto us the blessed fruit of thy womb, Jesus. O clement, O loving, O sweet Virgin Mary.";
   var CLOSING_PRAYER = "Let us pray. O God, whose only-begotten Son, by His life, death, and resurrection, has purchased for us the rewards of eternal life; grant, we beseech Thee, that meditating upon these mysteries of the most holy Rosary of the Blessed Virgin Mary, we may imitate what they contain and obtain what they promise, through the same Christ our Lord. Amen.";
 
+  // Additional traditional prayers, texts drawn from catholicity.com,
+  // for the "Other Prayers" card only — not part of the Rosary sequence.
+  var ST_FRANCIS = "Lord, make me an instrument of your peace. Where there is hatred, let me sow love. Where there is injury, pardon. Where there is doubt, faith. Where there is despair, hope. Where there is darkness, light. Where there is sadness, joy. O Divine Master, grant that I may not so much seek to be consoled as to console, to be understood as to understand, to be loved as to love. For it is in giving that we receive, it is in pardoning that we are pardoned, and it is in dying that we are born to eternal life. Amen.";
+  var ACT_OF_CONTRITION = "O my God, I am heartily sorry for having offended Thee, and I detest all my sins because of Thy just punishments, but most of all because they offend Thee, my God, who art all good and deserving of all my love. I firmly resolve, with the help of Thy grace, to sin no more, and to avoid the near occasions of sin. Amen.";
+  var ANIMA_CHRISTI = "Soul of Christ, sanctify me. Body of Christ, save me. Blood of Christ, inebriate me. Water from the side of Christ, wash me. Passion of Christ, strengthen me. O good Jesus, hear me. Within Thy wounds hide me. Suffer me not to be separated from Thee. From the malicious enemy defend me. At the hour of my death call me, and bid me come to Thee, that with Thy saints I may praise Thee forever and ever. Amen.";
+  var MEMORARE = "Remember, O most gracious Virgin Mary, that never was it known that anyone who fled to thy protection, implored thy help, or sought thy intercession was left unaided. Inspired by this confidence, I fly unto thee, O Virgin of virgins, my Mother. To thee do I come, before thee I stand, sinful and sorrowful. O Mother of the Word Incarnate, despise not my petitions, but in thy mercy hear and answer them. Amen.";
+  var SAINT_MICHAEL = "Saint Michael the Archangel, defend us in battle. Be our protection against the wickedness and snares of the devil. May God rebuke him, we humbly pray, and do thou, O Prince of the heavenly host, by the power of God, cast into hell Satan and all the evil spirits who prowl throughout the world seeking the ruin of souls. Amen.";
+  var THE_ANGELUS = "The Angel of the Lord declared unto Mary, and she conceived by the Holy Spirit. " + HAIL_MARY +
+    " Behold the handmaid of the Lord: be it done unto me according to thy word. " + HAIL_MARY +
+    " And the Word was made flesh, and dwelt among us. " + HAIL_MARY +
+    " Pray for us, O holy Mother of God, that we may be made worthy of the promises of Christ. Let us pray. Pour forth, we beseech Thee, O Lord, Thy grace into our hearts, that we, to whom the Incarnation of Christ, Thy Son, was made known by the message of an angel, may by His passion and cross be brought to the glory of His resurrection, through the same Christ our Lord. Amen.";
+
   // The "Other Prayers" card starts with the same texts already used to
-  // build the Rosary sequence above, offered individually.
+  // build the Rosary sequence above, then adds these further devotions.
   var OTHER_PRAYERS = [
     { label:"Sign of the Cross", text: SIGN_OF_CROSS },
     { label:"Apostles’ Creed", text: CREED },
@@ -269,7 +281,13 @@
     { label:"Glory Be", text: GLORY_BE },
     { label:"O My Jesus (Fatima Prayer)", text: FATIMA },
     { label:"Hail, Holy Queen", text: HAIL_HOLY_QUEEN },
-    { label:"Closing Prayer", text: CLOSING_PRAYER }
+    { label:"Closing Prayer", text: CLOSING_PRAYER },
+    { label:"Peace Prayer of St. Francis", text: ST_FRANCIS },
+    { label:"Act of Contrition", text: ACT_OF_CONTRITION },
+    { label:"Anima Christi", text: ANIMA_CHRISTI },
+    { label:"Memorare", text: MEMORARE },
+    { label:"The Angelus", text: THE_ANGELUS },
+    { label:"Saint Michael Prayer", text: SAINT_MICHAEL }
   ];
 
   var ORDINALS = ["First","Second","Third","Fourth","Fifth"];
