@@ -95,9 +95,7 @@
   .icon-btn-play svg{ width:20px; height:20px; }
   .btn-stop{ margin-left:auto; }
 
-  .voice-search{ width:100%; margin-top:14px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--ground); color:var(--ink); font-size:.85rem; }
-  .voice-search:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .voice-row{ display:flex; gap:8px; align-items:center; margin-top:10px; }
+  .voice-row{ display:flex; gap:8px; align-items:center; margin-top:14px; }
   .voice-row select{ flex:1; min-width:0; background:var(--ground); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 9px; font-size:.85rem; }
   .btn-refresh{ width:34px; height:34px; font-size:1rem; flex:none; transition:transform .4s ease; }
   .btn-refresh.is-spinning{ transform:rotate(360deg); }
@@ -201,7 +199,6 @@
   <aside class="sidebar">
     <section class="panel">
       <h3>Voice</h3>
-      <input type="search" id="voiceSearch" class="voice-search" placeholder="Search voices…" aria-label="Search voices">
       <div class="voice-row">
         <select id="voiceSelect" aria-label="Voice"></select>
         <button class="icon-btn btn-refresh" id="refreshVoicesBtn" type="button" aria-label="Refresh voice list" title="Refresh voice list">⟳</button>
@@ -469,26 +466,6 @@
     if(saved && voices.some(function(v){ return v.voiceURI===saved; })) sel.value = saved;
     else if(previous && voices.some(function(v){ return v.voiceURI===previous; })) sel.value = previous;
     else if(voices.length) sel.value = voices[0].voiceURI;
-    filterVoiceOptions();
-  }
-
-  // Hides (rather than removes) non-matching <option>s, so a search never
-  // silently changes which voice is actually selected — it only narrows
-  // what's visible while picking.
-  function filterVoiceOptions(){
-    var search = document.getElementById("voiceSearch");
-    var sel = document.getElementById("voiceSelect");
-    if(!search || !sel) return;
-    var q = search.value.trim().toLowerCase();
-    Array.prototype.forEach.call(sel.querySelectorAll("optgroup"), function(g){
-      var anyVisible = false;
-      Array.prototype.forEach.call(g.querySelectorAll("option"), function(o){
-        var match = !q || o.textContent.toLowerCase().indexOf(q) !== -1;
-        o.hidden = !match;
-        if(match) anyVisible = true;
-      });
-      g.hidden = !anyVisible;
-    });
   }
   if(synthAvailable){
     populateVoices();
@@ -596,7 +573,7 @@
   ["todayDate","todayMysteryPill","todayMysteryLabel","mysteryName","mysteryWhy",
    "intentCard","intentInput","resumeRow","resumeText","resumeBtn","discardResumeBtn","beginBtn",
    "prayerCard","prayerGroup","prayerProgress","prayerLabel","mysteryTitle","prayerText","reflectCue",
-   "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceSearch","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
+   "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
    "doneCard","doneSummary","newRosaryBtn","logList","logEmpty"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
@@ -782,7 +759,6 @@
   els.newRosaryBtn.addEventListener("click", function(){ els.intentInput.value=""; checkResume(); showOnly("intent"); });
 
   els.voiceSelect.addEventListener("change", function(){ try{ localStorage.setItem("rosary_voice", els.voiceSelect.value); }catch(e){} });
-  els.voiceSearch.addEventListener("input", filterVoiceOptions);
   els.refreshVoicesBtn.addEventListener("click", function(){
     // Network voices (Chrome's "Google" ones) can take longer than any
     // fixed timeout to finish enumerating, especially on a slow
