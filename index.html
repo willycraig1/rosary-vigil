@@ -39,6 +39,8 @@
   .page{ max-width:1140px; margin:0 auto; padding:44px 24px 90px; display:grid; grid-template-columns:1.55fr 1fr; gap:36px 44px; align-items:start; }
   @media (max-width:900px){ .page{ grid-template-columns:1fr; padding:32px 18px 64px; } }
 
+  #stage{ display:flex; flex-direction:column; gap:22px; }
+
   .masthead{ grid-column:1/-1; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:26px; margin-bottom:4px; }
   .eyebrow{ font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.12em; font-size:.7rem; color:var(--ink-soft); }
   .title{ font-size:clamp(2.1rem,4.2vw,2.9rem); margin-top:.2em; }
@@ -205,7 +207,7 @@
       <div class="prayer-meta">
         <span>Other Prayers</span>
       </div>
-      <h2 class="prayer-label">Play a single prayer</h2>
+      <h2 class="prayer-label">Pray a single prayer</h2>
       <p class="hint">Choose any prayer to hear it on its own, spoken and highlighted the same way as the Rosary above.</p>
       <div class="other-prayer-row">
         <select id="otherPrayerSelect" aria-label="Choose a prayer"></select>
@@ -585,14 +587,21 @@
     while((m = re.exec(text))) out.push({ start:m.index });
     return out;
   }
-  function scheduleFallbackHighlight(container, offset, text, rate){
+  function scheduleFallbackHighlight(container, offset, text, rate, startedAt){
     var words = wordStarts(text);
     if(!words.length) return function(){};
     var totalChars = text.length;
     var estMs = estimateReadMs(text) / (rate || 1);
+    // Schedule against the utterance's actual start time, not against
+    // "now" — this is called a short beat after speech began (see the
+    // grace period above), and anchoring to "now" instead of startedAt
+    // would bake that beat in as a flat, permanent lag on every word. Any
+    // word whose estimated moment has already passed fires immediately
+    // instead of waiting, so the highlight catches up rather than trailing.
+    var elapsed = Date.now() - startedAt;
     var timers = words.map(function(w){
-      var t = estMs * (w.start / totalChars);
-      return setTimeout(function(){ highlightWordAt(container, offset, w.start); }, t);
+      var target = estMs * (w.start / totalChars);
+      return setTimeout(function(){ highlightWordAt(container, offset, w.start); }, Math.max(0, target - elapsed));
     });
     return function(){ timers.forEach(clearTimeout); };
   }
@@ -621,14 +630,20 @@
         u.onstart = function(){
           if(statusEl) statusEl.textContent = chosen ? ("Speaking as: " + chosen.name) : "Speaking as: browser default";
           if(highlightTarget){
+            var startedAt = Date.now();
             // Give a real boundary event a brief moment to prove itself —
-            // every voice that supports them fires the first one almost
-            // immediately — before assuming this voice has none at all.
+            // measured directly, local voices fire their first one
+            // 130-220ms after onstart — before assuming this voice has
+            // none at all. This window is a hard floor on how soon the
+            // fallback can ever begin, so it's kept only as long as it
+            // needs to be; a real event arriving during it still wins
+            // immediately, it just costs a moment of otherwise-unneeded
+            // fallback bookkeeping.
             setTimeout(function(){
               if(!boundaryFired && !done){
-                cancelFallback = scheduleFallbackHighlight(highlightTarget.container, highlightTarget.offset||0, text, u.rate);
+                cancelFallback = scheduleFallbackHighlight(highlightTarget.container, highlightTarget.offset||0, text, u.rate, startedAt);
               }
-            }, 300);
+            }, 150);
           }
         };
         u.onboundary = function(e){
