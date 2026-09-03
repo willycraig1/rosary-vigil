@@ -8,9 +8,13 @@ A paced companion for praying the Rosary — spoken aloud in sync with the on-sc
 - Sets an intention once, then runs on its own — pause, resume, or step through manually at any point.
 - Keeps a log (date, Mystery set, intention, completion) in the browser's own local storage — no account or login involved. Deliberate tradeoff: the log stays with whichever browser you used, not shared across browsers or devices.
 
-## This repo vs. the live version
+## Where this lives
 
-`index.html` here is the source, kept for backup and version history. The same file is also published as a [Claude Artifact](https://claude.ai/code/artifact/9f8a8392-4e41-4b52-a07f-b32eb576b3e3) for convenience — behavior is identical either way, since the log is always local to the browser, not the hosting.
+- **[claude.ai Artifact](https://claude.ai/code/artifact/9f8a8392-4e41-4b52-a07f-b32eb576b3e3)** — the day-to-day one.
+- **[GitHub Pages](https://willycraig1.github.io/rosary-vigil/)** — the same app, served straight from this repo's `main` branch.
+- `index.html` here is also the source, kept for backup and version history.
+
+All three run identical code and behave the same — the log is always local to whichever browser opened it, not tied to the hosting, so there's no sync between them.
 
 ## Voice quality
 
