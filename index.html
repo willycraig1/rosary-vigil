@@ -91,6 +91,10 @@
   circle.bead-current{ fill:var(--accent); stroke:none; animation:beadPulse 1.8s ease-in-out infinite; }
   @keyframes beadPulse{ 0%,100%{ filter:drop-shadow(0 0 3px var(--accent)); } 50%{ filter:drop-shadow(0 0 8px var(--accent)); } }
   @media (prefers-reduced-motion: reduce){ circle.bead-current{ animation:none; filter:drop-shadow(0 0 6px var(--accent)); } }
+  .crucifix line{ stroke:var(--ink-faint); transition:stroke .25s ease; }
+  .crucifix.is-current line{ stroke:var(--accent); }
+  .crucifix.is-current{ animation:beadPulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ .crucifix.is-current{ animation:none; filter:drop-shadow(0 0 6px var(--accent)); } }
 
   .transport{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:22px; }
   .icon-btn{ width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.3rem; }
@@ -188,7 +192,7 @@
       <p class="reflect-cue" id="reflectCue" hidden>Pausing to let it land</p>
 
       <div class="beads-wrap">
-        <svg id="beadSvg" viewBox="0 0 300 250" aria-hidden="true"></svg>
+        <svg id="beadSvg" viewBox="0 0 300 320" aria-hidden="true"></svg>
         <p class="beads-count" id="beadsCount"></p>
       </div>
 
@@ -405,13 +409,25 @@
     var svg = document.getElementById("beadSvg");
     svg.innerHTML = "";
     var ns = "http://www.w3.org/2000/svg";
-    var pts = beadPositions.map(function(p){ return p.x.toFixed(1)+","+p.y.toFixed(1); }).join(" ");
+
+    // The crucifix marks the two pre-bead opening steps — the Sign of the
+    // Cross and the Apostles' Creed — traditionally prayed while holding
+    // it, before the first bead (the Our Father at the tail's tip).
+    var tailEnd = beadPositions[0];
+    var crossTop = tailEnd.y + 10;
+    var crossBottom = crossTop + 30;
+    var armY = crossTop + 9;
+    var armSpan = 11;
+
+    var pts = beadPositions.map(function(p){ return p.x.toFixed(1)+","+p.y.toFixed(1); }).join(" ")
+      + " " + tailEnd.x.toFixed(1) + "," + crossTop.toFixed(1);
     var poly = document.createElementNS(ns,"polyline");
     poly.setAttribute("points", pts);
     poly.setAttribute("fill","none");
     poly.setAttribute("stroke","var(--line)");
     poly.setAttribute("stroke-width","1.5");
     svg.appendChild(poly);
+
     beadPositions.forEach(function(p, idx){
       var c = document.createElementNS(ns,"circle");
       c.setAttribute("cx", p.x); c.setAttribute("cy", p.y); c.setAttribute("r", p.r);
@@ -419,6 +435,21 @@
       c.setAttribute("data-idx", idx);
       svg.appendChild(c);
     });
+
+    var cross = document.createElementNS(ns,"g");
+    cross.setAttribute("id","crucifix");
+    cross.setAttribute("class","crucifix");
+    var upright = document.createElementNS(ns,"line");
+    upright.setAttribute("x1", tailEnd.x); upright.setAttribute("y1", crossTop);
+    upright.setAttribute("x2", tailEnd.x); upright.setAttribute("y2", crossBottom);
+    upright.setAttribute("stroke-width","3"); upright.setAttribute("stroke-linecap","round");
+    cross.appendChild(upright);
+    var arm = document.createElementNS(ns,"line");
+    arm.setAttribute("x1", tailEnd.x-armSpan); arm.setAttribute("y1", armY);
+    arm.setAttribute("x2", tailEnd.x+armSpan); arm.setAttribute("y2", armY);
+    arm.setAttribute("stroke-width","3"); arm.setAttribute("stroke-linecap","round");
+    cross.appendChild(arm);
+    svg.appendChild(cross);
   }
 
   function updateBeadHighlight(beadsSoFar){
@@ -428,6 +459,11 @@
       var idx = parseInt(c.getAttribute("data-idx"),10);
       c.setAttribute("class","bead " + (idx < currentIdx ? "bead-done" : idx === currentIdx ? "bead-current" : "bead-upcoming"));
     });
+    // The crucifix stands in for the two pre-bead steps, which otherwise
+    // have nothing on the bead track to highlight (beadsSoFar is only
+    // ever 0 during those, and never again once the first bead is passed).
+    var cross = document.getElementById("crucifix");
+    if(cross) cross.classList.toggle("is-current", beadsSoFar === 0);
   }
 
   // ---------- Store (db capability with localStorage fallback) ----------
