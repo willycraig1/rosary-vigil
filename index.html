@@ -124,6 +124,9 @@
   .other-prayer-row{ display:flex; gap:12px; align-items:center; }
   .other-prayer-row select{ flex:1; min-width:0; background:var(--ground) var(--select-arrow) no-repeat right 13px center/14px; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 36px 10px 12px; font-size:.9rem; appearance:none; -webkit-appearance:none; -moz-appearance:none; }
   .other-prayer-card .prayer-text{ margin-top:2px; }
+  .patron-intention{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--ground); color:var(--ink); font-size:.88rem; }
+  .patron-intention::placeholder{ color:var(--ink-faint); }
+  .patron-intention:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
 
   .sidebar{ display:flex; flex-direction:column; gap:22px; }
   .panel{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:26px 26px 24px; }
@@ -234,6 +237,7 @@
         <select id="patronSelect" aria-label="Choose a patron saint"></select>
         <button class="icon-btn icon-btn-play" id="patronPlayBtn" aria-label="Play"></button>
       </div>
+      <input class="patron-intention" id="patronIntentionInput" type="text" maxlength="140" placeholder="Name your intention (spoken in place of “here make your request”)" hidden />
       <p class="prayer-text" id="patronText"></p>
     </section>
   </main>
@@ -762,7 +766,7 @@
    "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
    "doneCard","doneSummary","newRosaryBtn","logList","logEmpty",
    "otherPrayerSelect","otherPrayerText","otherPlayBtn",
-   "patronSelect","patronText","patronPlayBtn"
+   "patronSelect","patronText","patronPlayBtn","patronIntentionInput"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
   var PLAY_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 4l11 6-11 6V4z"/></svg>';
@@ -1045,9 +1049,23 @@
       els.patronSelect.appendChild(o);
     });
   }
+  // A few of these traditional prayers carry a parenthetical placeholder
+  // for a personal petition — e.g. St. Jude's "(here make your request)".
+  // Detected by pattern rather than a flag per saint, so any prayer with
+  // one automatically gets the intention field, present or future.
+  var INTENTION_PLACEHOLDER = /\(here[^)]*\)/i;
+  function currentPatron(){
+    return PATRON_SAINTS[parseInt(els.patronSelect.value, 10) || 0];
+  }
+  function patronPrayerText(prayer){
+    if(!INTENTION_PLACEHOLDER.test(prayer.text)) return prayer.text;
+    var intention = els.patronIntentionInput.value.trim();
+    return prayer.text.replace(INTENTION_PLACEHOLDER, intention ? ("for " + intention) : "for my intention");
+  }
   function renderPatronText(){
-    var idx = parseInt(els.patronSelect.value, 10) || 0;
-    renderPrayerWords(els.patronText, PATRON_SAINTS[idx].text);
+    var prayer = currentPatron();
+    els.patronIntentionInput.hidden = !INTENTION_PLACEHOLDER.test(prayer.text);
+    renderPrayerWords(els.patronText, patronPrayerText(prayer));
   }
   function stopPatron(){
     patronState.playing = false;
@@ -1059,13 +1077,12 @@
   function playPatron(){
     if(state.playing) pauseRosary(); // all three cards share one speech engine
     if(otherState.playing) stopOtherPrayer();
-    var idx = parseInt(els.patronSelect.value, 10) || 0;
-    var prayer = PATRON_SAINTS[idx];
+    var prayer = currentPatron();
     patronState.playing = true;
     els.patronPlayBtn.innerHTML = PAUSE_ICON;
     els.patronPlayBtn.setAttribute("aria-label","Pause");
     renderPatronText();
-    speak(prayer.text, function(){
+    speak(patronPrayerText(prayer), function(){
       if(!patronState.playing) return; // already stopped/superseded — don't clobber a later play
       patronState.playing = false;
       els.patronPlayBtn.innerHTML = PLAY_ICON;
@@ -1078,6 +1095,13 @@
   });
   els.patronSelect.addEventListener("change", function(){
     stopPatron();
+    els.patronIntentionInput.value = ""; // each saint's intention starts fresh
+    renderPatronText();
+  });
+  els.patronIntentionInput.addEventListener("input", function(){
+    // Live preview only — what's actually spoken is read fresh from the
+    // field the moment Play is pressed, so typing mid-playback never
+    // rewrites an utterance already underway.
     renderPatronText();
   });
   populatePatronOptions();
