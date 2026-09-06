@@ -135,6 +135,7 @@
   .today-detail{ margin-top:16px; display:flex; flex-direction:column; gap:12px; }
   .today-detail dt{ font-family:var(--font-mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); }
   .today-detail dd{ margin:3px 0 0; font-size:.95rem; }
+  .today-detail dd .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:7px; }
   .saint-name{ font-family:var(--font-display); font-weight:600; font-size:1.15rem; color:var(--ink); margin-top:8px; }
   .saint-name + .hint{ margin-top:4px; }
 
@@ -260,7 +261,7 @@
     <section class="panel">
       <h3>Today</h3>
       <dl class="today-detail">
-        <div><dt>Mystery</dt><dd id="mysteryName"></dd></div>
+        <div><dt>Mystery</dt><dd><span class="dot" id="mysteryDot"></span><span id="mysteryName"></span></dd></div>
         <div><dt>Because</dt><dd id="mysteryWhy"></dd></div>
       </dl>
     </section>
@@ -982,7 +983,7 @@
 
   // ---------- UI wiring ----------
   var els = {};
-  ["todayDate","todayMysteryPill","todayMysteryLabel","mysteryName","mysteryWhy",
+  ["todayDate","todayMysteryPill","todayMysteryLabel","mysteryDot","mysteryName","mysteryWhy",
    "intentCard","intentInput","resumeRow","resumeText","resumeBtn","discardResumeBtn","beginBtn",
    "prayerCard","prayerGroup","prayerProgress","prayerLabel","mysteryTitle","prayerText","reflectCue",
    "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
@@ -1003,6 +1004,8 @@
   els.todayDate.textContent = new Date().toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric" });
   els.todayMysteryPill.style.setProperty("--myst-c", "var(--myst-"+todaysSet.key+")");
   els.todayMysteryLabel.textContent = todaysSet.name + " Mysteries";
+  els.mysteryDot.style.background = "var(--myst-"+todaysSet.key+")"; // same color-per-Mystery coding as the masthead pill and the Log's dots
+  els.mysteryName.style.color = "var(--myst-"+todaysSet.key+")";
   els.mysteryName.textContent = todaysSet.name + " Mysteries";
   els.mysteryWhy.textContent = todaysSet.why;
 
