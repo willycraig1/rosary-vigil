@@ -8,7 +8,8 @@ A paced companion for praying the Rosary — spoken aloud in sync with the on-sc
 - Sets an intention once, then runs on its own — pause, resume, or step through manually at any point.
 - Keeps a log (date, Mystery set, intention, completion) in the browser's own local storage — no account or login involved. Deliberate tradeoff: the log stays with whichever browser you used, not shared across browsers or devices.
 - A second card below the Rosary plays any single prayer on its own, spoken and word-highlighted the same way: the eight Rosary components, plus the Peace Prayer of St. Francis, Act of Contrition, Anima Christi, Memorare, the Angelus, and the Saint Michael Prayer (texts from [catholicity.com](https://www.catholicity.com/prayer/prayers.html)).
-- A third card offers ten patron saints recognized for a particular need — St. Jude for hopeless causes, St. Anthony for lost articles, St. Lucy for eyesight, and so on — each with their traditional prayer, played the same way. Kept separate from the Rosary log: a patron's prayer carries no intention or Mystery, so it isn't logged as a session.
+- A third card offers ten patron saints recognized for a particular need — St. Jude for hopeless causes, St. Anthony for lost articles, St. Lucy for eyesight, and so on — each with their traditional prayer, played the same way. Kept separate from the Rosary log: a patron's prayer carries no intention or Mystery, so it isn't logged as a session. Prayers that traditionally leave room for a personal petition (St. Jude, St. John Bosco) get an intention field that's spoken in place of the placeholder.
+- A sidebar panel names the day's principal saint or feast from the General Roman Calendar — the Church's own official universal calendar — with a short blurb, and says so plainly on days that calendar doesn't cover (most saints are only locally venerated, without a fixed universal date).
 
 ## Where this lives
 

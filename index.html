@@ -135,6 +135,8 @@
   .today-detail{ margin-top:16px; display:flex; flex-direction:column; gap:12px; }
   .today-detail dt{ font-family:var(--font-mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); }
   .today-detail dd{ margin:3px 0 0; font-size:.95rem; }
+  .saint-name{ font-family:var(--font-display); font-weight:600; font-size:1.15rem; color:var(--ink); margin-top:8px; }
+  .saint-name + .hint{ margin-top:4px; }
 
   .log-list{ list-style:none; margin:16px 0 0; padding:0; max-height:340px; overflow-y:auto; display:flex; flex-direction:column; }
   .log-item{ display:flex; gap:11px; padding:12px 0; border-bottom:1px solid var(--line); }
@@ -261,6 +263,12 @@
         <div><dt>Mystery</dt><dd id="mysteryName"></dd></div>
         <div><dt>Because</dt><dd id="mysteryWhy"></dd></div>
       </dl>
+    </section>
+
+    <section class="panel">
+      <h3>Saint of the Day</h3>
+      <p class="saint-name" id="saintName" hidden></p>
+      <p class="hint" id="saintBlurb"></p>
     </section>
 
     <section class="panel">
@@ -392,6 +400,220 @@
   var DAY_TO_SET = ["glorious","joyful","sorrowful","glorious","luminous","sorrowful","joyful"];
 
   function getTodaysMysterySet(date){ return MYSTERY_SETS[DAY_TO_SET[date.getDay()]]; }
+
+  // ---------- Saint of the Day ----------
+  // Keyed by fixed "MM-DD" dates drawn from the General Roman Calendar —
+  // the Catholic Church's own official universal calendar (Wikipedia's
+  // "General Roman Calendar" article, cross-checked date by date against
+  // the Roman Missal citations it carries), not compiled from memory.
+  // Deliberately limited to this fixed list: many days of the year have
+  // no entry here at all, since the GRC itself doesn't assign one — the
+  // wider Roman Martyrology has thousands more, mostly local or historical,
+  // which this card doesn't attempt to cover. Moveable feasts (Easter,
+  // Pentecost, Trinity Sunday, and the like, which depend on the date of
+  // Easter rather than a fixed calendar day) are likewise out of scope.
+  var SAINTS_OF_DAY = {
+    "01-01": { name:"Mary, Mother of God", blurb:"The Church's oldest Marian feast, celebrated on the octave day of Christmas, honoring Mary's motherhood of Jesus." },
+    "01-02": { name:"Ss. Basil the Great & Gregory Nazianzen", blurb:"Fourth-century bishops and Doctors of the Church, among the Cappadocian Fathers who defended the faith against Arian heresy." },
+    "01-07": { name:"St. Raymond of Penyafort", blurb:"13th-century Dominican priest and canon lawyer who compiled the Church's first authoritative collection of decretals." },
+    "01-13": { name:"St. Hilary of Poitiers", blurb:"Fourth-century bishop and Doctor of the Church, a determined opponent of Arianism known as the “Athanasius of the West.”" },
+    "01-17": { name:"St. Anthony the Abbot", blurb:"Third-century Egyptian hermit considered the father of Christian monasticism, who spent decades alone in the desert." },
+    "01-20": { name:"St. Fabian & St. Sebastian", blurb:"Pope Fabian, martyred under Decius, and St. Sebastian, a Roman soldier martyred for his faith and patron of athletes." },
+    "01-21": { name:"St. Agnes", blurb:"A Roman girl martyred around age twelve or thirteen for refusing marriage in order to remain consecrated to Christ; patroness of young girls." },
+    "01-22": { name:"St. Vincent of Saragossa", blurb:"An early fourth-century deacon and martyr, tortured for refusing to surrender Christian scriptures during the Diocletianic persecution." },
+    "01-24": { name:"St. Francis de Sales", blurb:"17th-century bishop and Doctor of the Church known for his gentle spiritual direction; patron of writers and journalists." },
+    "01-25": { name:"The Conversion of St. Paul", blurb:"Commemorates Saul of Tarsus's encounter with Christ on the road to Damascus, which turned a persecutor of Christians into the Apostle to the Gentiles." },
+    "01-26": { name:"Ss. Timothy & Titus", blurb:"Companions and disciples of St. Paul, each entrusted with leading a young Christian community as bishop." },
+    "01-27": { name:"St. Angela Merici", blurb:"16th-century Italian founder of the Ursulines, one of the first religious orders dedicated to the education of girls." },
+    "01-28": { name:"St. Thomas Aquinas", blurb:"13th-century Dominican friar and Doctor of the Church whose Summa Theologica remains a cornerstone of Catholic theology; patron of students." },
+    "01-31": { name:"St. John Bosco", blurb:"19th-century Italian priest who devoted his life to educating poor and abandoned boys; patron of youth and apprentices." },
+    "02-03": { name:"St. Blaise & St. Ansgar", blurb:"St. Blaise, a fourth-century bishop and martyr invoked against ailments of the throat; St. Ansgar, a ninth-century missionary bishop to Scandinavia." },
+    "02-05": { name:"St. Agatha", blurb:"A third-century Sicilian virgin martyr who endured torture rather than renounce her faith; patroness invoked against fire." },
+    "02-06": { name:"St. Paul Miki & Companions", blurb:"Twenty-six Japanese Christians, including Paul Miki, crucified at Nagasaki in 1597 for practicing their faith." },
+    "02-08": { name:"St. Jerome Emiliani & St. Josephine Bakhita", blurb:"St. Jerome Emiliani, a founder of orphanages in Renaissance Italy; St. Josephine Bakhita, enslaved as a child, later a religious sister and patroness of trafficking survivors." },
+    "02-10": { name:"St. Scholastica", blurb:"Sixth-century twin sister of St. Benedict and a founder of women's monastic life in the Benedictine tradition." },
+    "02-11": { name:"Our Lady of Lourdes", blurb:"Commemorates the 1858 apparitions of Mary to Bernadette Soubirous at Lourdes, France, now a major site of pilgrimage and healing." },
+    "02-14": { name:"St. Cyril & St. Methodius", blurb:"Ninth-century brother missionaries to the Slavic peoples who devised the alphabet still named for Cyril; patrons of Europe." },
+    "02-17": { name:"The Seven Holy Founders", blurb:"Seven 13th-century Florentine noblemen who withdrew from society to found the Servite Order in devotion to Our Lady's sorrows." },
+    "02-21": { name:"St. Peter Damian", blurb:"11th-century monk, bishop, and Doctor of the Church known for his zeal in reforming clerical discipline." },
+    "02-22": { name:"The Chair of St. Peter", blurb:"Celebrates St. Peter's authority as first Bishop of Rome and the unity of the Church built upon that office." },
+    "02-23": { name:"St. Polycarp", blurb:"Second-century bishop of Smyrna, a disciple of the Apostle John, burned at the stake for refusing to renounce Christ." },
+    "02-27": { name:"St. Gregory of Narek", blurb:"Tenth-century Armenian monk, poet, and Doctor of the Church, celebrated for his mystical prayers of lament and praise." },
+    "03-04": { name:"St. Casimir", blurb:"15th-century Polish prince known for his piety and care for the poor, who died young after refusing a political marriage." },
+    "03-07": { name:"Ss. Perpetua & Felicity", blurb:"A noblewoman and her slave, martyred together in Carthage in 203 for refusing to renounce Christianity." },
+    "03-08": { name:"St. John of God", blurb:"16th-century Portuguese founder of the Brothers Hospitallers, devoted to caring for the sick and poor; patron of hospitals." },
+    "03-09": { name:"St. Frances of Rome", blurb:"15th-century Roman noblewoman who combined married life and charity with mystical devotion, later founding a community of oblates." },
+    "03-17": { name:"St. Patrick", blurb:"Fifth-century bishop who, after being enslaved in Ireland as a youth, returned as a missionary credited with converting much of the island." },
+    "03-18": { name:"St. Cyril of Jerusalem", blurb:"Fourth-century bishop and Doctor of the Church, remembered for his catechetical lectures preparing converts for baptism." },
+    "03-19": { name:"St. Joseph", blurb:"Husband of Mary and foster father of Jesus, honored as patron of the universal Church, of workers, and of a happy death." },
+    "03-23": { name:"St. Turibius of Mongrovejo", blurb:"16th-century archbishop of Lima who tirelessly evangelized colonial Peru, defending the rights of indigenous peoples." },
+    "03-25": { name:"The Annunciation", blurb:"Recalls the angel Gabriel's announcement to Mary that she would bear the Son of God, and her consent: “let it be done unto me.”" },
+    "04-02": { name:"St. Francis of Paola", blurb:"15th-century Italian hermit and founder of the Minim friars, known for extreme austerity and reported miracles." },
+    "04-04": { name:"St. Isidore of Seville", blurb:"Sixth-century archbishop and Doctor of the Church whose Etymologiae encyclopedia preserved classical learning into the Middle Ages; popularly invoked for the internet." },
+    "04-05": { name:"St. Vincent Ferrer", blurb:"14th-century Dominican preacher renowned across Europe for sermons that called thousands to repentance." },
+    "04-07": { name:"St. John Baptist de la Salle", blurb:"17th-century French priest who founded the Christian Brothers and pioneered free education for poor children; patron of teachers." },
+    "04-11": { name:"St. Stanislaus", blurb:"11th-century bishop of Kraków martyred by the Polish king he had publicly rebuked; patron of Poland." },
+    "04-13": { name:"St. Martin I", blurb:"Seventh-century pope exiled and mistreated by Byzantine authorities for opposing a heresy about the nature of Christ." },
+    "04-21": { name:"St. Anselm", blurb:"11th-century archbishop of Canterbury and Doctor of the Church, a founder of scholastic theology known for his arguments for God's existence." },
+    "04-23": { name:"St. George & St. Adalbert", blurb:"St. George, an early martyr and soldier-saint honored as patron of England and many nations; St. Adalbert, a tenth-century missionary bishop martyred in Prussia." },
+    "04-24": { name:"St. Fidelis of Sigmaringen", blurb:"17th-century Capuchin friar and lawyer-turned-missionary, killed by a mob while preaching against a Protestant uprising in Switzerland." },
+    "04-25": { name:"St. Mark", blurb:"Author of the earliest Gospel and companion of Ss. Peter and Paul, traditionally the founder of the Church of Alexandria." },
+    "04-28": { name:"St. Peter Chanel & St. Louis de Montfort", blurb:"St. Peter Chanel, a missionary martyred in Oceania; St. Louis de Montfort, a French priest whose writings shaped devotion to Mary." },
+    "04-29": { name:"St. Catherine of Siena", blurb:"14th-century laywoman, mystic, and Doctor of the Church who influenced popes and worked tirelessly for peace within the Church." },
+    "04-30": { name:"St. Pius V", blurb:"16th-century pope who implemented the reforms of the Council of Trent and standardized the Roman Missal." },
+    "05-01": { name:"St. Joseph the Worker", blurb:"A feast instituted to honor the dignity of labor through the example of Joseph's own trade as a carpenter." },
+    "05-02": { name:"St. Athanasius", blurb:"Fourth-century bishop of Alexandria and Doctor of the Church, the tireless defender of Christ's divinity against Arianism." },
+    "05-03": { name:"Ss. Philip & James", blurb:"Two of the Twelve Apostles; Philip is remembered for bringing Nathanael to Jesus, James the Less for leading the early Jerusalem church." },
+    "05-10": { name:"St. John of Ávila", blurb:"16th-century Spanish priest, mystic, and Doctor of the Church who mentored many of Spain's great reforming saints." },
+    "05-12": { name:"Ss. Nereus, Achilleus & Pancras", blurb:"Early Roman martyrs; Nereus and Achilleus were soldiers converted to Christianity, Pancras a teenager martyred for his faith." },
+    "05-13": { name:"Our Lady of Fatima", blurb:"Commemorates the 1917 apparitions of Mary to three shepherd children in Fatima, Portugal, with a message of prayer and penance." },
+    "05-14": { name:"St. Matthias", blurb:"The apostle chosen by lot to replace Judas Iscariot among the Twelve, as recounted in the Acts of the Apostles." },
+    "05-18": { name:"St. John I", blurb:"Sixth-century pope who died shortly after imprisonment by the Ostrogothic king Theodoric, honored as a martyr." },
+    "05-20": { name:"St. Bernardine of Siena", blurb:"15th-century Franciscan preacher famous for promoting devotion to the Holy Name of Jesus across Italy." },
+    "05-21": { name:"St. Christopher Magallanes & Companions", blurb:"A priest and twenty-four companions martyred during Mexico's anti-Catholic Cristero persecution in the 1920s." },
+    "05-22": { name:"St. Rita of Cascia", blurb:"15th-century Italian widow and Augustinian nun who bore a mysterious wound resembling Christ's crown of thorns; patroness of impossible causes." },
+    "05-25": { name:"St. Bede, St. Gregory VII & St. Mary Magdalene de’ Pazzi", blurb:"St. Bede, an eighth-century English monk and Doctor of the Church; St. Gregory VII, a reforming pope; St. Mary Magdalene de’ Pazzi, a Florentine Carmelite mystic." },
+    "05-26": { name:"St. Philip Neri", blurb:"16th-century Roman priest known for his joy and humor, founder of the Oratorians; patron of Rome." },
+    "05-27": { name:"St. Augustine of Canterbury", blurb:"Sixth-century Benedictine monk sent by Pope Gregory the Great to evangelize England, becoming its first archbishop of Canterbury." },
+    "05-29": { name:"St. Paul VI", blurb:"20th-century pope who guided the Church through the Second Vatican Council and its aftermath." },
+    "05-31": { name:"The Visitation", blurb:"Commemorates Mary's journey to visit her kinswoman Elizabeth, recounted in Luke's Gospel, where Elizabeth proclaims her “blessed among women.”" },
+    "06-01": { name:"St. Justin Martyr", blurb:"Second-century philosopher who converted to Christianity and defended the faith in writing before being martyred in Rome." },
+    "06-02": { name:"Ss. Marcellinus & Peter", blurb:"Early fourth-century Roman martyrs, an exorcist and a priest, put to death during the persecution of Diocletian." },
+    "06-03": { name:"St. Charles Lwanga & Companions", blurb:"Young Ugandan Christians, pages of the royal court, burned alive in 1886 for refusing to renounce their faith." },
+    "06-05": { name:"St. Boniface", blurb:"Eighth-century English monk known as the Apostle of Germany, martyred while evangelizing among the Frisians." },
+    "06-06": { name:"St. Norbert", blurb:"12th-century founder of the Premonstratensian order, later archbishop of Magdeburg and a reformer of clerical life." },
+    "06-09": { name:"St. Ephrem", blurb:"Fourth-century Syriac deacon, hymn-writer, and Doctor of the Church, called the “Harp of the Holy Spirit” for his poetic theology." },
+    "06-11": { name:"St. Barnabas", blurb:"Companion of St. Paul on his early missionary journeys and one of the first to welcome Gentile converts, honored among the Apostles." },
+    "06-13": { name:"St. Anthony of Padua", blurb:"13th-century Franciscan friar renowned as a preacher and Doctor of the Church; popularly invoked to find lost articles." },
+    "06-19": { name:"St. Romuald", blurb:"11th-century Italian monk who founded the Camaldolese order, combining monastic community with the solitary life of hermits." },
+    "06-21": { name:"St. Aloysius Gonzaga", blurb:"16th-century Italian Jesuit who renounced his noble inheritance and died young while nursing plague victims; patron of youth." },
+    "06-22": { name:"St. Paulinus of Nola & Ss. Fisher and More", blurb:"St. Paulinus, a wealthy Roman who gave up his fortune to become a bishop; Ss. John Fisher and Thomas More, English martyrs executed under Henry VIII." },
+    "06-24": { name:"Nativity of St. John the Baptist", blurb:"Celebrates the birth of the prophet who prepared the way for Christ and baptized him in the Jordan." },
+    "06-27": { name:"St. Cyril of Alexandria", blurb:"Fifth-century bishop and Doctor of the Church who defended Mary's title as Mother of God at the Council of Ephesus." },
+    "06-28": { name:"St. Irenaeus", blurb:"Second-century bishop of Lyon and Doctor of the Church whose writings refuted early Gnostic heresies and shaped Catholic doctrine." },
+    "06-29": { name:"Ss. Peter & Paul", blurb:"The two great pillars of the early Church, one the first pope and the other the Apostle to the Gentiles, both martyred in Rome." },
+    "06-30": { name:"First Martyrs of the Church of Rome", blurb:"Christians put to death in Nero's persecution following the great fire of Rome in the year 64." },
+    "07-03": { name:"St. Thomas", blurb:"The apostle remembered for doubting Christ's Resurrection until he could touch his wounds, later a missionary traditionally credited with evangelizing India." },
+    "07-04": { name:"St. Elizabeth of Portugal", blurb:"13th-century queen renowned for her charity and for making peace between warring relatives, including her own husband and son." },
+    "07-05": { name:"St. Anthony Zaccaria", blurb:"16th-century Italian priest who founded the Barnabites, promoting frequent Communion and public preaching." },
+    "07-06": { name:"St. Maria Goretti", blurb:"An eleven-year-old Italian girl murdered in 1902 for resisting an assault, who forgave her killer before she died; patroness of youth." },
+    "07-09": { name:"St. Augustine Zhao Rong & Companions", blurb:"A Chinese priest and 119 companions martyred in China between the 17th and 20th centuries." },
+    "07-11": { name:"St. Benedict", blurb:"Sixth-century founder of Western monasticism, whose Rule for monks shaped religious life across Europe for centuries; patron of Europe." },
+    "07-13": { name:"St. Henry", blurb:"11th-century Holy Roman Emperor known for his piety, his generosity to the Church, and his efforts at ecclesiastical reform." },
+    "07-14": { name:"St. Camillus de Lellis", blurb:"16th-century former soldier who founded an order dedicated to nursing the sick; patron of hospitals and the dying." },
+    "07-15": { name:"St. Bonaventure", blurb:"13th-century Franciscan theologian and Doctor of the Church known as the “Seraphic Doctor” for his mystical writings." },
+    "07-16": { name:"Our Lady of Mount Carmel", blurb:"Honors Mary under her patronage of the Carmelite order, tied to a tradition of her appearing to St. Simon Stock with the brown scapular." },
+    "07-20": { name:"St. Apollinaris", blurb:"First-century bishop of Ravenna, a disciple of St. Peter, martyred for his missionary preaching in Italy." },
+    "07-21": { name:"St. Lawrence of Brindisi", blurb:"16th-century Capuchin friar and Doctor of the Church, a gifted linguist and preacher who also served as a papal diplomat." },
+    "07-22": { name:"St. Mary Magdalene", blurb:"A devoted follower of Jesus and the first witness to his Resurrection, whom he sent to announce the news to the other disciples." },
+    "07-23": { name:"St. Bridget of Sweden", blurb:"14th-century noblewoman, mystic, and founder of the Bridgettine order, who worked to reform the Church and end its exile in Avignon." },
+    "07-24": { name:"St. Sharbel Makhluf", blurb:"19th-century Lebanese Maronite monk and hermit renowned for asceticism and miracles attributed to him after death." },
+    "07-25": { name:"St. James", blurb:"One of the Twelve Apostles, brother of John, the first apostle to be martyred; tradition holds his remains rest at Santiago de Compostela." },
+    "07-26": { name:"Ss. Joachim & Anne", blurb:"The parents of the Blessed Virgin Mary, honored by tradition though not named in Scripture; patrons of grandparents." },
+    "07-29": { name:"Ss. Martha, Mary & Lazarus", blurb:"The siblings of Bethany who welcomed Jesus into their home; Martha served him, Mary sat at his feet, and Lazarus was raised from death." },
+    "07-30": { name:"St. Peter Chrysologus", blurb:"Fifth-century bishop of Ravenna and Doctor of the Church, nicknamed “golden-worded” for his eloquent, concise homilies." },
+    "07-31": { name:"St. Ignatius of Loyola", blurb:"16th-century Spanish soldier turned mystic who founded the Society of Jesus (the Jesuits) after a conversion during recovery from battle wounds." },
+    "08-01": { name:"St. Alphonsus Liguori", blurb:"18th-century Italian bishop, moral theologian, and Doctor of the Church who founded the Redemptorists." },
+    "08-02": { name:"St. Eusebius of Vercelli & St. Peter Julian Eymard", blurb:"St. Eusebius, a fourth-century bishop exiled for defending Christ's divinity; St. Peter Julian Eymard, a 19th-century founder devoted to the Eucharist." },
+    "08-04": { name:"St. John Vianney", blurb:"19th-century French parish priest, the Curé of Ars, famed for the long hours he spent hearing confessions; patron of parish priests." },
+    "08-06": { name:"The Transfiguration", blurb:"Recalls the moment Jesus appeared radiant in glory before Peter, James, and John on a mountain, revealing his divine nature." },
+    "08-08": { name:"St. Dominic", blurb:"13th-century Spanish priest who founded the Order of Preachers (Dominicans) to combat heresy through preaching and study." },
+    "08-09": { name:"St. Teresa Benedicta of the Cross", blurb:"A Jewish-born philosopher (Edith Stein) who converted to Catholicism, became a Carmelite nun, and died at Auschwitz in 1942." },
+    "08-10": { name:"St. Lawrence", blurb:"Third-century Roman deacon martyred by being roasted on a gridiron, reportedly telling his executioners to turn him over as he was “done on this side.”" },
+    "08-11": { name:"St. Clare of Assisi", blurb:"13th-century follower of St. Francis who founded the Poor Clares, living a life of radical poverty and contemplation." },
+    "08-12": { name:"St. Jane Frances de Chantal", blurb:"17th-century French widow who, guided by St. Francis de Sales, founded the Order of the Visitation." },
+    "08-13": { name:"Ss. Pontian & Hippolytus", blurb:"A third-century pope and a priest, once rivals, reconciled and died together as slave-laborers in Sardinia for their faith." },
+    "08-14": { name:"St. Maximilian Kolbe", blurb:"Polish Franciscan friar who offered his life in place of a fellow prisoner at Auschwitz in 1941." },
+    "08-15": { name:"The Assumption", blurb:"Celebrates Mary's being taken up, body and soul, into heaven at the end of her earthly life." },
+    "08-16": { name:"St. Stephen of Hungary", blurb:"11th-century king who established Christianity as Hungary's faith and built its early Church structures; patron of Hungary." },
+    "08-19": { name:"St. John Eudes", blurb:"17th-century French priest who promoted devotion to the Sacred Heart of Jesus and Immaculate Heart of Mary." },
+    "08-20": { name:"St. Bernard of Clairvaux", blurb:"12th-century Cistercian abbot and Doctor of the Church, an influential preacher, mystic, and reformer of monastic life." },
+    "08-21": { name:"St. Pius X", blurb:"Pope from 1903 to 1914 known for encouraging frequent Communion, including for children, and for reforming Church music and law." },
+    "08-22": { name:"Queenship of Mary", blurb:"Honors Mary as Queen of Heaven, crowned in glory alongside her Son, a week after the feast of her Assumption." },
+    "08-23": { name:"St. Rose of Lima", blurb:"17th-century laywoman known for extreme penance and mystical devotion, the first canonized saint of the Americas." },
+    "08-24": { name:"St. Bartholomew", blurb:"One of the Twelve Apostles, often identified with Nathanael, traditionally martyred by flaying while preaching in Armenia." },
+    "08-25": { name:"St. Louis IX & St. Joseph Calasanz", blurb:"St. Louis IX, a French king renowned for justice and piety who led two Crusades; St. Joseph Calasanz, founder of the first free public schools in Europe." },
+    "08-27": { name:"St. Monica", blurb:"Fourth-century mother of St. Augustine, remembered for decades of prayer that preceded her son's conversion; patroness of mothers." },
+    "08-28": { name:"St. Augustine of Hippo", blurb:"Fourth-century bishop and Doctor of the Church whose Confessions and City of God shaped Western theology and philosophy for centuries." },
+    "08-29": { name:"The Beheading of St. John the Baptist", blurb:"Recalls the martyrdom of John the Baptist, executed at the request of Herodias for denouncing Herod's unlawful marriage." },
+    "09-03": { name:"St. Gregory the Great", blurb:"Sixth-century pope and Doctor of the Church who reformed the liturgy and sent missionaries to evangelize England." },
+    "09-05": { name:"St. Teresa of Calcutta", blurb:"20th-century founder of the Missionaries of Charity, devoted to serving “the poorest of the poor” in the streets of Calcutta." },
+    "09-08": { name:"Nativity of Mary", blurb:"Celebrates the birth of the Blessed Virgin Mary, nine months after the feast of her Immaculate Conception." },
+    "09-09": { name:"St. Peter Claver", blurb:"17th-century Jesuit missionary who ministered for decades to enslaved Africans arriving in Cartagena; patron of racial reconciliation." },
+    "09-12": { name:"The Most Holy Name of Mary", blurb:"A feast honoring the name of Mary, historically tied to a 1683 victory that lifted the siege of Vienna." },
+    "09-13": { name:"St. John Chrysostom", blurb:"Fourth-century archbishop of Constantinople and Doctor of the Church renowned for his eloquent preaching; his name means “golden-mouthed.”" },
+    "09-14": { name:"The Exaltation of the Holy Cross", blurb:"Commemorates the finding of the True Cross in Jerusalem in the fourth century and its veneration ever since." },
+    "09-15": { name:"Our Lady of Sorrows", blurb:"Honors Mary's seven sorrows, from Simeon's prophecy to the burial of her son, observed the day after the Exaltation of the Cross." },
+    "09-16": { name:"Ss. Cornelius & Cyprian", blurb:"A third-century pope and bishop of Carthage, allies in Church unity, both martyred within a few years of each other." },
+    "09-17": { name:"St. Robert Bellarmine & St. Hildegard of Bingen", blurb:"St. Robert Bellarmine, a Jesuit cardinal and Doctor of the Church known for his catechism; St. Hildegard, a 12th-century abbess, composer, and Doctor of the Church." },
+    "09-19": { name:"St. Januarius", blurb:"Bishop of Benevento martyred in the early fourth century, whose reputed blood relic in Naples is said to liquefy on his feast." },
+    "09-20": { name:"St. Andrew Kim Tae-gon & Companions", blurb:"Korea's first native-born priest and over a hundred companions martyred during 19th-century persecutions of Christians there." },
+    "09-21": { name:"St. Matthew", blurb:"A tax collector called by Jesus to become one of the Twelve Apostles and the author of the Gospel bearing his name." },
+    "09-23": { name:"St. Pius of Pietrelcina", blurb:"20th-century Capuchin friar, known as Padre Pio, remembered for bearing the stigmata and for decades spent hearing confessions." },
+    "09-26": { name:"Ss. Cosmas & Damian", blurb:"Twin brothers and physicians in the early Church who treated the sick without charge before being martyred; patrons of physicians." },
+    "09-27": { name:"St. Vincent de Paul", blurb:"17th-century French priest who organized vast charitable works for the poor; patron of charitable societies." },
+    "09-28": { name:"St. Wenceslaus & St. Lawrence Ruiz", blurb:"St. Wenceslaus, a tenth-century Bohemian duke murdered by his brother for his faith, patron of the Czech people; St. Lawrence Ruiz, a Filipino martyr in Japan." },
+    "09-29": { name:"Ss. Michael, Gabriel & Raphael", blurb:"The three archangels named in Scripture: Michael the defender, Gabriel the messenger of the Annunciation, and Raphael the healer and guide." },
+    "09-30": { name:"St. Jerome", blurb:"Fourth-century priest and Doctor of the Church whose Vulgate translation made Scripture accessible in Latin for over a thousand years." },
+    "10-01": { name:"St. Thérèse of Lisieux", blurb:"19th-century French Carmelite nun and Doctor of the Church known for her “Little Way” of spiritual childhood; co-patroness of missions." },
+    "10-02": { name:"The Holy Guardian Angels", blurb:"A feast honoring the angels the Church believes God assigns to watch over and guide each person." },
+    "10-04": { name:"St. Francis of Assisi", blurb:"13th-century founder of the Franciscan order who embraced radical poverty and a deep love for creation; patron of animals and ecology." },
+    "10-05": { name:"St. Faustina Kowalska", blurb:"20th-century Polish nun whose visions of Christ gave rise to the Divine Mercy devotion." },
+    "10-06": { name:"St. Bruno", blurb:"11th-century founder of the Carthusian order, combining solitary prayer with community life among its monks." },
+    "10-07": { name:"Our Lady of the Rosary", blurb:"Established after a naval victory attributed to praying the Rosary, honoring the devotion at the heart of this app." },
+    "10-09": { name:"St. Denis & Companions, St. John Leonardi, St. John Henry Newman", blurb:"St. Denis, a third-century bishop of Paris martyred with companions; St. John Leonardi, a Counter-Reformation founder; St. John Henry Newman, a 19th-century English convert and Doctor of the Church." },
+    "10-11": { name:"St. John XXIII", blurb:"20th-century pope who convened the Second Vatican Council, opening the Church to renewed engagement with the modern world." },
+    "10-14": { name:"St. Callistus I", blurb:"Third-century pope, once a slave, martyred during a period of persecution; an early administrator of Rome's Christian community." },
+    "10-15": { name:"St. Teresa of Ávila", blurb:"16th-century Spanish mystic, reformer of the Carmelite order, and Doctor of the Church renowned for her writings on prayer." },
+    "10-16": { name:"St. Hedwig & St. Margaret Mary Alacoque", blurb:"St. Hedwig, a 13th-century duchess devoted to charity; St. Margaret Mary, a 17th-century nun through whom devotion to the Sacred Heart of Jesus spread." },
+    "10-17": { name:"St. Ignatius of Antioch", blurb:"Second-century bishop and disciple of the Apostles, martyred in Rome; his letters written en route to execution remain treasured early Christian texts." },
+    "10-18": { name:"St. Luke", blurb:"Physician, companion of St. Paul, and author of the Gospel of Luke and the Acts of the Apostles; patron of physicians and artists." },
+    "10-19": { name:"Ss. Jean de Brébeuf, Isaac Jogues & Companions, St. Paul of the Cross", blurb:"Jesuit missionaries martyred by Iroquois warriors in 17th-century North America; St. Paul of the Cross, founder of the Passionists." },
+    "10-22": { name:"St. John Paul II", blurb:"20th-century Polish pope whose long pontificate spanned the fall of Communism and extensive global travel and evangelization." },
+    "10-23": { name:"St. John of Capistrano", blurb:"15th-century Franciscan friar and preacher who, in his seventies, helped rally the defense of Europe at the Siege of Belgrade." },
+    "10-24": { name:"St. Anthony Mary Claret", blurb:"19th-century Spanish archbishop and founder of the Claretians, a tireless preacher and writer of popular catechetical works." },
+    "10-28": { name:"Ss. Simon & Jude", blurb:"Two of the Twelve Apostles about whom little else is recorded in Scripture; Jude is popularly invoked for desperate causes." },
+    "11-01": { name:"All Saints", blurb:"Honors every saint in heaven, known and unknown, who has reached the joy of eternal life with God." },
+    "11-02": { name:"All Souls", blurb:"A day of prayer for all the faithful departed, especially souls believed to still be undergoing purification before entering heaven." },
+    "11-03": { name:"St. Martin de Porres", blurb:"17th-century Peruvian lay brother of mixed heritage known for his humility and care for the poor and sick; patron of racial harmony." },
+    "11-04": { name:"St. Charles Borromeo", blurb:"16th-century Milanese cardinal who implemented the reforms of the Council of Trent with vigor and personal austerity." },
+    "11-10": { name:"St. Leo the Great", blurb:"Fifth-century pope and Doctor of the Church remembered for persuading Attila the Hun to turn back from Rome." },
+    "11-11": { name:"St. Martin of Tours", blurb:"Fourth-century Roman soldier who famously cut his cloak in half to share it with a beggar, later becoming a bishop; patron of soldiers." },
+    "11-12": { name:"St. Josaphat", blurb:"17th-century bishop martyred for promoting the reunion of Eastern and Western Christians under his pastoral care." },
+    "11-15": { name:"St. Albert the Great", blurb:"13th-century Dominican bishop and Doctor of the Church, a teacher of St. Thomas Aquinas and pioneer of the natural sciences; patron of scientists." },
+    "11-16": { name:"St. Margaret of Scotland & St. Gertrude", blurb:"St. Margaret, an 11th-century queen known for piety and charity; St. Gertrude the Great, a 13th-century German mystic." },
+    "11-17": { name:"St. Elizabeth of Hungary", blurb:"13th-century princess who, widowed young, devoted her wealth and life to the poor and sick; patroness of charitable works." },
+    "11-21": { name:"The Presentation of Mary", blurb:"A traditional feast recalling Mary's presentation in the Temple as a child, an event not recorded in Scripture but honored since antiquity." },
+    "11-22": { name:"St. Cecilia", blurb:"A Roman martyr traditionally said to have sung to God in her heart even at her own wedding; patroness of musicians." },
+    "11-23": { name:"St. Clement I & St. Columban", blurb:"St. Clement, an early pope and disciple of the Apostles; St. Columban, an Irish monk who founded monasteries across post-Roman Europe." },
+    "11-24": { name:"St. Andrew Dung-Lac & Companions", blurb:"Vietnamese priest and some 117 companions martyred over several centuries of persecution in Vietnam." },
+    "11-25": { name:"St. Catherine of Alexandria", blurb:"A learned virgin martyr of the early Church who, by tradition, debated pagan philosophers before her execution; patroness of philosophers." },
+    "11-30": { name:"St. Andrew", blurb:"One of the Twelve Apostles and the first called by Jesus, later a missionary traditionally martyred on an X-shaped cross; patron of Scotland." },
+    "12-03": { name:"St. Francis Xavier", blurb:"16th-century Jesuit missionary who traveled across Asia bringing the Gospel to India, Japan, and beyond; patron of missions." },
+    "12-04": { name:"St. John Damascene", blurb:"Eighth-century monk and Doctor of the Church, a defender of icons and a systematic compiler of Eastern Christian theology." },
+    "12-06": { name:"St. Nicholas", blurb:"Fourth-century bishop of Myra known for secret gifts to the poor, the inspiration behind the figure of Santa Claus; patron of children and sailors." },
+    "12-07": { name:"St. Ambrose", blurb:"Fourth-century bishop of Milan and Doctor of the Church who baptized St. Augustine and shaped the Church's early hymnody." },
+    "12-08": { name:"The Immaculate Conception", blurb:"Celebrates Mary's conception free from original sin from the first moment of her existence, in preparation for bearing Christ." },
+    "12-09": { name:"St. Juan Diego", blurb:"16th-century indigenous Mexican to whom Our Lady of Guadalupe is said to have appeared, leaving her image on his cloak." },
+    "12-10": { name:"Our Lady of Loreto", blurb:"Honors the Holy House traditionally believed to be Mary's own home, venerated at a shrine in Loreto, Italy." },
+    "12-11": { name:"St. Damasus I", blurb:"Fourth-century pope who commissioned St. Jerome's Latin translation of the Bible and promoted the cult of Rome's martyrs." },
+    "12-12": { name:"Our Lady of Guadalupe", blurb:"Commemorates Mary's 1531 apparition to St. Juan Diego near Mexico City; patroness of the Americas." },
+    "12-13": { name:"St. Lucy", blurb:"A young virgin martyr of Syracuse, traditionally associated with light and clear sight; patroness of eyesight." },
+    "12-14": { name:"St. John of the Cross", blurb:"16th-century Spanish mystic, poet, and Doctor of the Church who, with St. Teresa of Ávila, reformed the Carmelite order." },
+    "12-21": { name:"St. Peter Canisius", blurb:"16th-century Jesuit and Doctor of the Church whose catechisms helped renew Catholic teaching during the Counter-Reformation." },
+    "12-23": { name:"St. John of Kanty", blurb:"15th-century Polish priest and university professor known for his humility and generosity to the poor." },
+    "12-25": { name:"The Nativity of the Lord", blurb:"Celebrates the birth of Jesus Christ in Bethlehem, the central feast of the Christian year alongside Easter." },
+    "12-26": { name:"St. Stephen", blurb:"The first Christian martyr, a deacon stoned to death for his faith shortly after Pentecost, as recounted in the Acts of the Apostles." },
+    "12-27": { name:"St. John the Apostle", blurb:"The “beloved disciple,” author traditionally credited with the Fourth Gospel, three epistles, and the Book of Revelation." },
+    "12-28": { name:"The Holy Innocents", blurb:"Commemorates the infant boys of Bethlehem killed by King Herod in his attempt to eliminate the newborn Christ." },
+    "12-29": { name:"St. Thomas Becket", blurb:"12th-century archbishop of Canterbury murdered in his own cathedral for defending the Church's independence from King Henry II." },
+    "12-31": { name:"St. Sylvester I", blurb:"Fourth-century pope during whose pontificate Christianity gained legal recognition in the Roman Empire under Constantine." }
+  };
+  function getSaintOfDay(date){
+    var mm = String(date.getMonth()+1).padStart(2,"0");
+    var dd = String(date.getDate()).padStart(2,"0");
+    return SAINTS_OF_DAY[mm+"-"+dd] || null;
+  }
 
   // ---------- Build the step sequence ----------
   function buildSteps(set){
@@ -766,7 +988,8 @@
    "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
    "doneCard","doneSummary","newRosaryBtn","logList","logEmpty",
    "otherPrayerSelect","otherPrayerText","otherPlayBtn",
-   "patronSelect","patronText","patronPlayBtn","patronIntentionInput"
+   "patronSelect","patronText","patronPlayBtn","patronIntentionInput",
+   "saintName","saintBlurb"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
   var PLAY_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 4l11 6-11 6V4z"/></svg>';
@@ -782,6 +1005,16 @@
   els.todayMysteryLabel.textContent = todaysSet.name + " Mysteries";
   els.mysteryName.textContent = todaysSet.name + " Mysteries";
   els.mysteryWhy.textContent = todaysSet.why;
+
+  var todaysSaint = getSaintOfDay(new Date());
+  if(todaysSaint){
+    els.saintName.hidden = false;
+    els.saintName.textContent = todaysSaint.name;
+    els.saintBlurb.textContent = todaysSaint.blurb;
+  } else {
+    els.saintName.hidden = true;
+    els.saintBlurb.textContent = "No major feast is fixed to today's date on the Church's universal calendar — the wider Martyrology holds many more, mostly local or historical.";
+  }
 
   var state = { steps:[], set:null, currentIndex:0, playing:false, entryId:null, intention:"", startedAt:null };
 
