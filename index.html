@@ -223,6 +223,19 @@
       </div>
       <p class="prayer-text" id="otherPrayerText"></p>
     </section>
+
+    <section class="card other-prayer-card" id="patronCard">
+      <div class="prayer-meta">
+        <span>Patron Saints</span>
+      </div>
+      <h2 class="prayer-label">Ask a saint's intercession</h2>
+      <p class="hint">A patron recognized for a particular need, with the traditional prayer asking their help.</p>
+      <div class="other-prayer-row">
+        <select id="patronSelect" aria-label="Choose a patron saint"></select>
+        <button class="icon-btn icon-btn-play" id="patronPlayBtn" aria-label="Play"></button>
+      </div>
+      <p class="prayer-text" id="patronText"></p>
+    </section>
   </main>
 
   <aside class="sidebar">
@@ -298,6 +311,33 @@
     { label:"Memorare", text: MEMORARE },
     { label:"The Angelus", text: THE_ANGELUS },
     { label:"Saint Michael Prayer", text: SAINT_MICHAEL }
+  ];
+
+  // Patron saints recognized for a particular need, with their
+  // traditional prayer — texts drawn from catholicity.com and other
+  // established Catholic prayer references, not the Rosary's own saints.
+  var ST_JUDE = "Saint Jude, glorious Apostle, faithful servant and friend of Jesus: The name of the traitor has caused you to be forgotten by many, but the true Church invokes you universally as the Patron of things despaired of. Pray for me, that finally I may receive the consolations and the succor of Heaven in all my necessities, tribulations and sufferings, particularly (here make your request), and that I may bless God with the Elect throughout eternity. Amen. Saint Jude, Apostle, martyr and relative of our Lord Jesus Christ, of Mary and of Joseph, intercede for us. Amen.";
+  var ST_JOSEPH_HAPPY_DEATH = "O Blessed Joseph, who died in the arms of Jesus and Mary, obtain for me, I beseech you, the grace of a happy death. In that hour of dread and anguish, assist me by your presence, and protect me by your power against the enemies of my salvation. Into your sacred hands, living and dying, Jesus, Mary, Joseph, I commend my soul. Amen.";
+  var ST_GERARD = "Saint Gerard Majella, women the world over have adopted you as their patron in the joys and fears of childbearing. Today, we invoke your intercession for the pro-life movement. Pray that all will look upon human life as a great gift from God to be accepted and loved, not as an unwanted burden to be destroyed. Assist from heaven the efforts of those on earth who are enlisted in the Christ-like crusade of promoting the dignity and value of all human life, particularly the unborn. This we ask through Christ, our Lord. Amen.";
+  var ST_JOHN_BOSCO = "In need of special help, I appeal with confidence to you, O Saint John Bosco, for I require not only spiritual graces but also temporal ones, and particularly (here mention the grace you seek). May you, who on earth had such great devotion to Jesus in the Blessed Sacrament, and to Mary, Help of Christians, and who always had compassion for those who were in suffering, obtain from Jesus and from His heavenly Mother the grace I now request, and also a sincere resignation to the Will of God. Amen.";
+  var ST_LUCY = "O God, our Creator and Redeemer, mercifully hear our prayers that as we venerate your servant, Saint Lucy, for the light of faith you bestowed upon her, you would increase and preserve this same light in our souls that we may be able to avoid evil, to do good, and to abhor nothing so much as the blindness and the darkness of evil and of sin. Relying on your goodness, O God, we humbly ask you, by the intercessory prayers of your servant, Saint Lucy, that you would give perfect vision to our eyes, that they may serve for your greater honor and glory and for the salvation of our souls in this world, that we may come to the enjoyment of your unfailing light of the Lamb of God in paradise. Saint Lucy, virgin and martyr, hear our prayers and obtain our petitions. Amen.";
+  var ST_MAXIMILIAN_KOLBE = "St. Maximilian, amidst the hate and lonely misery of Auschwitz, you brought love into the lives of fellow captives and sowed the seeds of hope amidst despair. You bore witness to the world by word and deed that Love alone creates. Help me to become more like you. With the Church and Mary and you, may I proclaim that Love alone creates. To the hungry and oppressed, the naked and homeless, the scorned and hated, the lonely and despairing, may I proclaim the power of Christ's love, which endures forever and ever. Amen.";
+  var ST_THOMAS_AQUINAS = "Lord, You raised up in your Church the blessed Thomas, a doctor angelic in the integrity of his life and in the loftiness of his mind. You raised him up to strengthen your Church with his salutary and solid doctrine, and to enlighten her as a sun; his wisdom, extolled by all, commands the administration of the whole world. O Angelic Doctor, Holy Thomas, prince of theologians and pattern of philosophers, bright ornament of the Christian world, light of the Church, heavenly patron of Catholic schools, who taught wisdom without invention, and shared it without grudging, pray to Wisdom Himself, the Son of God, for us. Pray that the Spirit of Wisdom having come into us, we may understand those things which you taught, and perform in imitation the things which you did. Pray also that we may be made partakers in the learning and virtues with which you while on earth did shine as the sun, and finally that with you in Heaven we may enjoy forever their most sweet fruits, praising with you Divine Wisdom, through infinite ages of ages. Amen.";
+  var ST_THERESE = "O servant of God, Saint Theresa of the Child Jesus, who in your dying moments said: I will spend my heaven in doing good upon earth, hasten to let fall upon me a shower of roses that I, too, may be inflamed with that fire of love which burned so brilliantly in your breast and which brought you so gloriously to the arms of Jesus, my Lord and my God. Amen.";
+  var ST_ANTHONY = "Dear Saint Anthony, you are the patron of the poor and the helper of all who seek lost articles. Help me to find the object I have lost so that I will be able to make better use of the time I will gain for God's greater honor and glory. Grant your gracious aid to all people who seek what they have lost, especially those who seek to regain God's grace. Amen.";
+  var ST_CHRISTOPHER = "O Saint Christopher, who bore the Christ Child on your shoulders, protect us on our travels. Guard us from dangers of the road and unforeseen death, and intercede for us, that we may one day see Christ face to face, whom you served so faithfully. Through Christ our Lord. Amen.";
+
+  var PATRON_SAINTS = [
+    { label:"St. Jude Thaddeus", cause:"Desperate & Hopeless Causes", text: ST_JUDE },
+    { label:"St. Joseph", cause:"A Happy Death", text: ST_JOSEPH_HAPPY_DEATH },
+    { label:"St. Gerard Majella", cause:"Expectant Mothers", text: ST_GERARD },
+    { label:"St. John Bosco", cause:"Youth & Special Needs", text: ST_JOHN_BOSCO },
+    { label:"St. Lucy", cause:"Eyesight", text: ST_LUCY },
+    { label:"St. Maximilian Kolbe", cause:"Those Who Suffer", text: ST_MAXIMILIAN_KOLBE },
+    { label:"St. Thomas Aquinas", cause:"Students & Scholars", text: ST_THOMAS_AQUINAS },
+    { label:"St. Thérèse of Lisieux", cause:"Missionaries & Trust in God", text: ST_THERESE },
+    { label:"St. Anthony of Padua", cause:"Lost Articles", text: ST_ANTHONY },
+    { label:"St. Christopher", cause:"Travelers", text: ST_CHRISTOPHER }
   ];
 
   var ORDINALS = ["First","Second","Third","Fourth","Fifth"];
@@ -721,13 +761,15 @@
    "prayerCard","prayerGroup","prayerProgress","prayerLabel","mysteryTitle","prayerText","reflectCue",
    "beadsCount","playBtn","prevBtn","nextBtn","rateRange","voiceSelect","voiceHint","voiceStatus","previewVoiceBtn","refreshVoicesBtn","stopBtn",
    "doneCard","doneSummary","newRosaryBtn","logList","logEmpty",
-   "otherPrayerSelect","otherPrayerText","otherPlayBtn"
+   "otherPrayerSelect","otherPrayerText","otherPlayBtn",
+   "patronSelect","patronText","patronPlayBtn"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
   var PLAY_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 4l11 6-11 6V4z"/></svg>';
   var PAUSE_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><rect x="5" y="4" width="4" height="12"/><rect x="11" y="4" width="4" height="12"/></svg>';
   els.playBtn.innerHTML = PLAY_ICON;
   els.otherPlayBtn.innerHTML = PLAY_ICON;
+  els.patronPlayBtn.innerHTML = PLAY_ICON;
 
   var todaysSet = getTodaysMysterySet(new Date());
   document.title = "Rosary Vigil";
@@ -908,7 +950,9 @@
 
   els.playBtn.addEventListener("click", function(){
     if(!state.playing){
-      if(otherState.playing) stopOtherPrayer(); // the two cards share one speech engine — only one plays at a time
+      // All three cards share one speech engine — only one plays at a time.
+      if(otherState.playing) stopOtherPrayer();
+      if(patronState.playing) stopPatron();
       state.playing = true; els.playBtn.innerHTML = PAUSE_ICON; els.playBtn.setAttribute("aria-label","Pause"); speakCurrent();
     }
     else { pauseRosary(); }
@@ -962,6 +1006,7 @@
   }
   function playOtherPrayer(){
     if(state.playing) pauseRosary(); // share one speech engine — only one card speaks at a time
+    if(patronState.playing) stopPatron();
     var idx = parseInt(els.otherPrayerSelect.value, 10) || 0;
     var prayer = OTHER_PRAYERS[idx];
     otherState.playing = true;
@@ -985,6 +1030,58 @@
   });
   populateOtherPrayerOptions();
   renderOtherPrayerText();
+
+  // ---------- Patron Saints card ----------
+  // Same player pattern as Other Prayers, its own list, its own card —
+  // kept separate since a patron's prayer carries no intention or Mystery
+  // and isn't part of the Rosary log (see PATRON_SAINTS above).
+  var patronState = { playing:false };
+
+  function populatePatronOptions(){
+    els.patronSelect.innerHTML = "";
+    PATRON_SAINTS.forEach(function(p, idx){
+      var o = document.createElement("option");
+      o.value = idx; o.textContent = p.label + " — " + p.cause;
+      els.patronSelect.appendChild(o);
+    });
+  }
+  function renderPatronText(){
+    var idx = parseInt(els.patronSelect.value, 10) || 0;
+    renderPrayerWords(els.patronText, PATRON_SAINTS[idx].text);
+  }
+  function stopPatron(){
+    patronState.playing = false;
+    if(synthAvailable) speechSynthesis.cancel();
+    clearWordHighlight(els.patronText);
+    els.patronPlayBtn.innerHTML = PLAY_ICON;
+    els.patronPlayBtn.setAttribute("aria-label","Play");
+  }
+  function playPatron(){
+    if(state.playing) pauseRosary(); // all three cards share one speech engine
+    if(otherState.playing) stopOtherPrayer();
+    var idx = parseInt(els.patronSelect.value, 10) || 0;
+    var prayer = PATRON_SAINTS[idx];
+    patronState.playing = true;
+    els.patronPlayBtn.innerHTML = PAUSE_ICON;
+    els.patronPlayBtn.setAttribute("aria-label","Pause");
+    renderPatronText();
+    speak(prayer.text, function(){
+      if(!patronState.playing) return; // already stopped/superseded — don't clobber a later play
+      patronState.playing = false;
+      els.patronPlayBtn.innerHTML = PLAY_ICON;
+      els.patronPlayBtn.setAttribute("aria-label","Play");
+    }, { container: els.patronText, offset: 0 });
+  }
+  els.patronPlayBtn.addEventListener("click", function(){
+    if(patronState.playing) stopPatron();
+    else playPatron();
+  });
+  els.patronSelect.addEventListener("change", function(){
+    stopPatron();
+    renderPatronText();
+  });
+  populatePatronOptions();
+  renderPatronText();
 
   function statusLabel(e){
     if(e.status==="completed") return "Completed";
