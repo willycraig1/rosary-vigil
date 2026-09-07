@@ -243,6 +243,19 @@
       <input class="patron-intention" id="patronIntentionInput" type="text" maxlength="140" placeholder="Name your intention (spoken in place of “here make your request”)" hidden />
       <p class="prayer-text" id="patronText"></p>
     </section>
+
+    <section class="card other-prayer-card" id="jesusPrayerCard">
+      <div class="prayer-meta">
+        <span>Eastern Christian Tradition</span>
+      </div>
+      <h2 class="prayer-label">The Jesus Prayer</h2>
+      <p class="hint">Central to Orthodox and Eastern Catholic hesychast spirituality, traditionally repeated many times on a knotted prayer rope — a komboskini or chotki, usually 33, 50, 100, or 300 knots, not a rosary — and traditionally received from a spiritual father rather than taken up alone. Offered here simply, alongside this collection of Christian prayer.</p>
+      <div class="other-prayer-row">
+        <select id="jesusPrayerSelect" aria-label="Choose a form of the Jesus Prayer"></select>
+        <button class="icon-btn icon-btn-play" id="jesusPrayerPlayBtn" aria-label="Play"></button>
+      </div>
+      <p class="prayer-text" id="jesusPrayerText"></p>
+    </section>
   </main>
 
   <aside class="sidebar">
@@ -351,6 +364,20 @@
     { label:"St. Thérèse of Lisieux", cause:"Missionaries & Trust in God", text: ST_THERESE },
     { label:"St. Anthony of Padua", cause:"Lost Articles", text: ST_ANTHONY },
     { label:"St. Christopher", cause:"Travelers", text: ST_CHRISTOPHER }
+  ];
+
+  // The Jesus Prayer, central to Eastern Christian (Orthodox and Eastern
+  // Catholic) hesychast spirituality — a distinct devotion from the
+  // Rosary, not a variant of it. Multiple lengths are all traditionally
+  // legitimate; several parishes' own teaching pages describe this same
+  // progression from full to shortest form.
+  var JESUS_PRAYER_FULL = "Lord Jesus Christ, Son of God, have mercy on me, a sinner.";
+  var JESUS_PRAYER_SHORT = "Lord Jesus Christ, have mercy on me, a sinner.";
+  var JESUS_PRAYER_SHORTEST = "Lord, have mercy.";
+  var JESUS_PRAYER_FORMS = [
+    { label:"Full Form", text: JESUS_PRAYER_FULL },
+    { label:"Shorter Form", text: JESUS_PRAYER_SHORT },
+    { label:"Shortest Form", text: JESUS_PRAYER_SHORTEST }
   ];
 
   var ORDINALS = ["First","Second","Third","Fourth","Fifth"];
@@ -990,7 +1017,8 @@
    "doneCard","doneSummary","newRosaryBtn","logList","logEmpty",
    "otherPrayerSelect","otherPrayerText","otherPlayBtn",
    "patronSelect","patronText","patronPlayBtn","patronIntentionInput",
-   "saintName","saintBlurb"
+   "saintName","saintBlurb",
+   "jesusPrayerSelect","jesusPrayerText","jesusPrayerPlayBtn"
   ].forEach(function(id){ els[id] = document.getElementById(id); });
 
   var PLAY_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 4l11 6-11 6V4z"/></svg>';
@@ -998,6 +1026,7 @@
   els.playBtn.innerHTML = PLAY_ICON;
   els.otherPlayBtn.innerHTML = PLAY_ICON;
   els.patronPlayBtn.innerHTML = PLAY_ICON;
+  els.jesusPrayerPlayBtn.innerHTML = PLAY_ICON;
 
   var todaysSet = getTodaysMysterySet(new Date());
   document.title = "Rosary Vigil";
@@ -1190,9 +1219,10 @@
 
   els.playBtn.addEventListener("click", function(){
     if(!state.playing){
-      // All three cards share one speech engine — only one plays at a time.
+      // All four cards share one speech engine — only one plays at a time.
       if(otherState.playing) stopOtherPrayer();
       if(patronState.playing) stopPatron();
+      if(jesusPrayerState.playing) stopJesusPrayer();
       state.playing = true; els.playBtn.innerHTML = PAUSE_ICON; els.playBtn.setAttribute("aria-label","Pause"); speakCurrent();
     }
     else { pauseRosary(); }
@@ -1247,6 +1277,7 @@
   function playOtherPrayer(){
     if(state.playing) pauseRosary(); // share one speech engine — only one card speaks at a time
     if(patronState.playing) stopPatron();
+    if(jesusPrayerState.playing) stopJesusPrayer();
     var idx = parseInt(els.otherPrayerSelect.value, 10) || 0;
     var prayer = OTHER_PRAYERS[idx];
     otherState.playing = true;
@@ -1311,8 +1342,9 @@
     els.patronPlayBtn.setAttribute("aria-label","Play");
   }
   function playPatron(){
-    if(state.playing) pauseRosary(); // all three cards share one speech engine
+    if(state.playing) pauseRosary(); // all four cards share one speech engine
     if(otherState.playing) stopOtherPrayer();
+    if(jesusPrayerState.playing) stopJesusPrayer();
     var prayer = currentPatron();
     patronState.playing = true;
     els.patronPlayBtn.innerHTML = PAUSE_ICON;
@@ -1342,6 +1374,60 @@
   });
   populatePatronOptions();
   renderPatronText();
+
+  // ---------- Jesus Prayer card ----------
+  // Same player pattern again, its own list, its own card — kept
+  // separate and distinctly labeled (see JESUS_PRAYER_FORMS above and
+  // the card's own hint text) rather than folded into either Catholic
+  // devotion card above it.
+  var jesusPrayerState = { playing:false };
+
+  function populateJesusPrayerOptions(){
+    els.jesusPrayerSelect.innerHTML = "";
+    JESUS_PRAYER_FORMS.forEach(function(p, idx){
+      var o = document.createElement("option");
+      o.value = idx; o.textContent = p.label;
+      els.jesusPrayerSelect.appendChild(o);
+    });
+  }
+  function renderJesusPrayerText(){
+    var idx = parseInt(els.jesusPrayerSelect.value, 10) || 0;
+    renderPrayerWords(els.jesusPrayerText, JESUS_PRAYER_FORMS[idx].text);
+  }
+  function stopJesusPrayer(){
+    jesusPrayerState.playing = false;
+    if(synthAvailable) speechSynthesis.cancel();
+    clearWordHighlight(els.jesusPrayerText);
+    els.jesusPrayerPlayBtn.innerHTML = PLAY_ICON;
+    els.jesusPrayerPlayBtn.setAttribute("aria-label","Play");
+  }
+  function playJesusPrayer(){
+    if(state.playing) pauseRosary(); // all four cards share one speech engine
+    if(otherState.playing) stopOtherPrayer();
+    if(patronState.playing) stopPatron();
+    var idx = parseInt(els.jesusPrayerSelect.value, 10) || 0;
+    var form = JESUS_PRAYER_FORMS[idx];
+    jesusPrayerState.playing = true;
+    els.jesusPrayerPlayBtn.innerHTML = PAUSE_ICON;
+    els.jesusPrayerPlayBtn.setAttribute("aria-label","Pause");
+    renderJesusPrayerText();
+    speak(form.text, function(){
+      if(!jesusPrayerState.playing) return; // already stopped/superseded — don't clobber a later play
+      jesusPrayerState.playing = false;
+      els.jesusPrayerPlayBtn.innerHTML = PLAY_ICON;
+      els.jesusPrayerPlayBtn.setAttribute("aria-label","Play");
+    }, { container: els.jesusPrayerText, offset: 0 });
+  }
+  els.jesusPrayerPlayBtn.addEventListener("click", function(){
+    if(jesusPrayerState.playing) stopJesusPrayer();
+    else playJesusPrayer();
+  });
+  els.jesusPrayerSelect.addEventListener("change", function(){
+    stopJesusPrayer();
+    renderJesusPrayerText();
+  });
+  populateJesusPrayerOptions();
+  renderJesusPrayerText();
 
   function statusLabel(e){
     if(e.status==="completed") return "Completed";
