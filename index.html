@@ -148,6 +148,16 @@
   .log-intent{ font-size:.88rem; color:var(--ink); overflow-wrap:break-word; }
   .log-status{ align-self:flex-start; margin-top:2px; font-family:var(--font-mono); font-size:.68rem; letter-spacing:.03em; color:var(--ink-soft); }
   .log-status-completed{ color:var(--accent); }
+  .log-note-area{ margin-top:6px; }
+  .log-note{ font-size:.85rem; color:var(--ink-soft); font-style:italic; line-height:1.45; overflow-wrap:break-word; }
+  .log-note-btn{ display:block; margin-top:4px; background:none; border:none; padding:0; font-family:var(--font-mono); font-size:.68rem; letter-spacing:.03em; color:var(--ink-faint); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+  .log-note-btn:hover{ color:var(--ink-soft); }
+  .log-note-edit{ display:flex; flex-direction:column; gap:6px; }
+  .log-note-edit textarea{ width:100%; min-height:52px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--ground); color:var(--ink); font-size:.85rem; font-family:inherit; resize:vertical; }
+  .log-note-edit textarea:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .log-note-actions{ display:flex; gap:8px; }
+  .log-note-actions button{ font-family:var(--font-mono); font-size:.68rem; padding:4px 11px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); cursor:pointer; }
+  .log-note-actions button.save{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
   .empty-note{ color:var(--ink-faint); font-size:.85rem; margin-top:14px; }
 
   .reflect-cue{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; color:var(--ink-faint); text-transform:uppercase; }
@@ -287,7 +297,7 @@
 
     <section class="panel">
       <h3>Log</h3>
-      <p class="hint">A record of what was actually prayed, intentions included.</p>
+      <p class="hint">A record of what was actually prayed, intentions included — add a note afterward to track whether it was answered.</p>
       <ul class="log-list" id="logList"></ul>
       <p class="empty-note" id="logEmpty">Nothing logged yet — it will fill in as you pray.</p>
     </section>
@@ -1429,12 +1439,72 @@
   populateJesusPrayerOptions();
   renderJesusPrayerText();
 
+  // Duration is the span between starting and the entry's last real
+  // timestamp (completedAt if finished, else the last updatedAt) — a
+  // simple, honest wall-clock measure. For a Rosary set aside and
+  // resumed much later, this reflects real elapsed time rather than
+  // active prayer time, which the app doesn't track separately.
+  function entryDurationMs(e){
+    var end = e.completedAt || e.updatedAt;
+    if(!e.startedAt || !end) return null;
+    var ms = new Date(end) - new Date(e.startedAt);
+    return (isFinite(ms) && ms >= 0) ? ms : null;
+  }
+  function formatDuration(ms){
+    if(ms == null) return "";
+    var mins = Math.round(ms/60000);
+    if(mins < 1) return "under a minute";
+    if(mins < 60) return mins + " min";
+    var hrs = Math.floor(mins/60), remMins = mins % 60;
+    if(hrs < 24) return hrs + "h" + (remMins ? " " + remMins + "m" : "");
+    var days = Math.floor(hrs/24);
+    return days + (days===1 ? " day" : " days");
+  }
   function statusLabel(e){
-    if(e.status==="completed") return "Completed";
-    var n = e.stepsCompleted||0, t = e.totalSteps||80;
-    return (e.status==="partial" ? "Set aside — " : "In progress — ") + n + " of " + t + " steps";
+    var base;
+    if(e.status==="completed") base = "Completed";
+    else {
+      var n = e.stepsCompleted||0, t = e.totalSteps||80;
+      base = (e.status==="partial" ? "Set aside — " : "In progress — ") + n + " of " + t + " steps";
+    }
+    var dur = formatDuration(entryDurationMs(e));
+    return dur ? (base + " · " + dur) : base;
   }
   function mysteryDot(key){ return "color-mix(in srgb, var(--myst-"+(key||"joyful")+") 100%, transparent)"; }
+
+  // Notes are edited in place within the log list. Saving calls
+  // Store.updateEntry, whose change event re-renders the whole list —
+  // so the edit UI never needs to persist across renders on its own.
+  function renderLogNoteView(container, e){
+    container.innerHTML = "";
+    if(e.note){
+      var noteP = document.createElement("p"); noteP.className = "log-note"; noteP.textContent = e.note;
+      var editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.className = "log-note-btn"; editBtn.textContent = "Edit note";
+      editBtn.addEventListener("click", function(){ renderLogNoteEdit(container, e); });
+      container.appendChild(noteP); container.appendChild(editBtn);
+    } else {
+      var addBtn = document.createElement("button"); addBtn.type = "button"; addBtn.className = "log-note-btn"; addBtn.textContent = "+ Add note";
+      addBtn.addEventListener("click", function(){ renderLogNoteEdit(container, e); });
+      container.appendChild(addBtn);
+    }
+  }
+  function renderLogNoteEdit(container, e){
+    container.innerHTML = "";
+    var wrap = document.createElement("div"); wrap.className = "log-note-edit";
+    var ta = document.createElement("textarea");
+    ta.value = e.note || "";
+    ta.maxLength = 500;
+    ta.placeholder = "Was this answered? Any update worth remembering…";
+    var actions = document.createElement("div"); actions.className = "log-note-actions";
+    var saveBtn = document.createElement("button"); saveBtn.type = "button"; saveBtn.className = "save"; saveBtn.textContent = "Save";
+    var cancelBtn = document.createElement("button"); cancelBtn.type = "button"; cancelBtn.textContent = "Cancel";
+    saveBtn.addEventListener("click", function(){ Store.updateEntry(e.id, { note: ta.value.trim() }); });
+    cancelBtn.addEventListener("click", function(){ renderLogNoteView(container, e); });
+    actions.appendChild(saveBtn); actions.appendChild(cancelBtn);
+    wrap.appendChild(ta); wrap.appendChild(actions);
+    container.appendChild(wrap);
+    ta.focus();
+  }
 
   Store.subscribeEntries(function(list){
     els.logList.innerHTML = "";
@@ -1449,7 +1519,9 @@
       intentLine.textContent = e.intention ? ("“" + e.intention + "”") : "No intention set";
       var statusEl = document.createElement("span"); statusEl.className = "log-status " + (e.status==="completed" ? "log-status-completed" : "");
       statusEl.textContent = statusLabel(e);
-      body.appendChild(dateLine); body.appendChild(intentLine); body.appendChild(statusEl);
+      var noteArea = document.createElement("div"); noteArea.className = "log-note-area";
+      renderLogNoteView(noteArea, e);
+      body.appendChild(dateLine); body.appendChild(intentLine); body.appendChild(statusEl); body.appendChild(noteArea);
       li.appendChild(dot); li.appendChild(body);
       els.logList.appendChild(li);
     });
