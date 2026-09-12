@@ -5,6 +5,7 @@ A paced companion for praying the Rosary — spoken aloud in sync with the on-sc
 - Selects today's Mystery set (Joyful / Sorrowful / Glorious / Luminous) automatically by day of week.
 - Speaks each prayer via the browser's text-to-speech, advancing the text exactly when the spoken line ends.
 - Pauses for a few seconds after each Mystery's meditation before moving on, so it has room to land.
+- Keeps that Mystery's name and its "Consider…" line visible as a subtitle for the whole decade that follows — Our Father through the Fatima Prayer — as a meditation aid, not just while it's first announced.
 - Sets an intention once, then runs on its own — pause, resume, or step through manually at any point.
 - Keeps a log (date, Mystery set, intention, completion, duration) in the browser's own local storage — no account or login involved. Deliberate tradeoff: the log stays with whichever browser you used, not shared across browsers or devices. Each entry can carry its own note, added or edited any time, to journal whether the intention was answered.
 - A second card below the Rosary plays any single prayer on its own, spoken and word-highlighted the same way: the eight Rosary components, plus the Peace Prayer of St. Francis, Act of Contrition, Anima Christi, Memorare, the Angelus, and the Saint Michael Prayer (texts from [catholicity.com](https://www.catholicity.com/prayer/prayers.html)).

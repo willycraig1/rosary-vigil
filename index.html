@@ -76,7 +76,7 @@
   .prayer-card{ display:flex; flex-direction:column; gap:22px; }
   .prayer-meta{ display:flex; justify-content:space-between; align-items:baseline; font-family:var(--font-mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); }
   .prayer-label{ font-size:clamp(1.5rem,3vw,1.9rem); transition:opacity .18s ease; }
-  .mystery-title{ font-family:var(--font-display); font-style:italic; font-size:1.2rem; color:var(--accent); margin-top:-10px; }
+  .mystery-title{ font-family:var(--font-display); font-style:italic; font-size:1.05rem; line-height:1.4; color:var(--accent); margin-top:-6px; max-width:60ch; }
   .prayer-text{ font-family:var(--font-display); font-size:clamp(1.25rem,2.4vw,1.55rem); line-height:1.55; color:var(--ink); max-width:60ch; transition:opacity .18s ease; }
   .prayer-text .word{ border-radius:4px; padding:0 1px; margin:0 -1px; transition:background-color .12s ease; }
   .prayer-text .word.is-current{ background:color-mix(in srgb, var(--accent) 38%, transparent); }
@@ -1088,11 +1088,21 @@
     // speaks first has no on-screen equivalent to highlight, so its
     // length becomes the offset boundary events need to skip.
     if(step.kind==="announce"){
-      els.mysteryTitle.hidden=false; els.mysteryTitle.textContent = step.title;
       wordSpanOffset = (step.label + ": " + step.title + ". ").length;
     } else {
-      els.mysteryTitle.hidden=true;
       wordSpanOffset = 0;
+    }
+    // As a meditation aid, keep the decade's mystery — and the
+    // "Consider…" line from its meditation — in view as a subtitle for
+    // the whole decade (announce through the Fatima Prayer), not just
+    // while it's first announced.
+    if(step.groupKind==="decade" && state.set.mysteries[step.decadeIndex]){
+      var decadeMystery = state.set.mysteries[step.decadeIndex];
+      var considerMatch = decadeMystery.meditation.match(/Consider.*$/);
+      els.mysteryTitle.hidden = false;
+      els.mysteryTitle.textContent = decadeMystery.name + " — " + (considerMatch ? considerMatch[0] : decadeMystery.meditation);
+    } else {
+      els.mysteryTitle.hidden = true;
     }
     renderPrayerWords(els.prayerText, step.text);
     updateBeadHighlight(step.beadsSoFar);
